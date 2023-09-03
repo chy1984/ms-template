@@ -1,0 +1,18 @@
+server:
+  port: 9500
+  servlet:
+    context-path: /xxx-ms
+
+spring:
+  application:
+    name: xxx-ms
+  profiles:
+    active: dev
+
+mybatis-plus:
+  mapper-locations: classpath*:dao/**/*.xml
+  configuration:
+    map-underscore-to-camel-case: true
+  global-config:
+    db-config:
+      table-prefix: t_

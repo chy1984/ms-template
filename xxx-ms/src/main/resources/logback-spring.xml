@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<configuration>
+    <include resource="org/springframework/boot/logging/logback/base.xml"/>
+    <jmxConfigurator/>
+
+    <!-- 日志文件存储地址 -->
+    <property name="LOG_HOME" value="logs"/>
+    <property name="APPLICATION_NAME" value="xxx-ms"/>
+
+    <!-- 日志格式。微服务最好指定服务名称，便于ELK收集查看 -->
+    <property name="LOG_PATTERN"
+              value="[${APPLICATION_NAME}]%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger - %msg%n"/>
+
+    <!-- 滚动文件 -->
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <!-- 日志全部输入到指定文件中，此文件会作为滚动策略的日志来源 -->
+        <File>${LOG_HOME}/${APPLICATION_NAME}.log</File>
+        <!-- 指定滚动策略，此处基于时间滚动 -->
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <FileNamePattern>${LOG_HOME}/${APPLICATION_NAME}-%d{yyyy-MM-dd}.log</FileNamePattern>
+            <!-- 保留天数 -->
+            <maxHistory>30</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern>${LOG_PATTERN}</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+
+    <!-- 日志输出级别 -->
+    <root level="INFO">
+        <appender-ref ref="FILE" level="INFO"/>
+    </root>
+
+</configuration>
