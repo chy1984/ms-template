@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.chy.xxx.ms.modules.system.dao.SysResourceDao">
+
+    <sql id="Base_Column_List">
+        id, res_name, res_type, res_icon, res_url, res_req_method, seq, `status`, parent_id,
+        create_time, update_time
+    </sql>
+
+    <resultMap id="BaseResultMap" type="com.chy.xxx.ms.modules.system.po.SysResourcePo">
+        <id property="id" column="id" jdbcType="BIGINT"/>
+        <result property="resName" column="res_name" jdbcType="VARCHAR"/>
+        <result property="resType" column="res_type" jdbcType="TINYINT"/>
+        <result property="resIcon" column="res_icon" jdbcType="VARCHAR"/>
+        <result property="resUrl" column="res_url" jdbcType="VARCHAR"/>
+        <result property="resReqMethod" column="res_req_method" jdbcType="VARCHAR"/>
+        <result property="seq" column="seq" jdbcType="INTEGER"/>
+        <result property="status" column="status" jdbcType="TINYINT"/>
+        <result property="parentId" column="parent_id" jdbcType="BIGINT"/>
+        <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
+        <result property="updateTime" column="update_time" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <select id="listByQo" resultType="com.chy.xxx.ms.modules.system.po.SysResourcePo">
+        select
+        <include refid="Base_Column_List"/>
+        from t_sys_resource
+        <where>
+            <if test="ids!=null and ids.size()>0">
+                and id in
+                <foreach collection="ids" item="id" open="(" close=")" separator=",">
+                    #{id}
+                </foreach>
+            </if>
+            <if test="resType!=null">
+                and res_type = #{resType}
+            </if>
+            <if test="resUrl!=null and resUrl!=''">
+                and res_url = #{resUrl}
+            </if>
+            <if test="resReqMethod!=null">
+                and res_req_method = #{resReqMethod}
+            </if>
+            <if test="status!=null">
+                and `status` = #{status}
+            </if>
+            <if test="parentId!=null">
+                and parent_id = #{parentId}
+            </if>
+        </where>
+    </select>
+
+</mapper>

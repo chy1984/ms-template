@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.chy.xxx.ms.modules.system.dao.SysRoleDao">
+
+    <sql id="Base_Column_List">
+        id, role_name, `status`, create_time, update_time
+    </sql>
+
+    <resultMap id="BaseResultMap" type="com.chy.xxx.ms.modules.system.po.SysRolePo">
+        <id property="id" column="id" jdbcType="BIGINT"/>
+        <result property="roleName" column="role_name" jdbcType="VARCHAR"/>
+        <result property="status" column="status" jdbcType="TINYINT"/>
+        <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
+        <result property="updateTime" column="update_time" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <select id="listByQo" resultType="com.chy.xxx.ms.modules.system.po.SysRolePo">
+        select
+        <include refid="Base_Column_List"/>
+        from t_sys_role
+        <where>
+            <if test="ids!=null and ids.size()>0">
+                and id in
+                <foreach collection="ids" item="id" open="(" close=")" separator=",">
+                    #{id}
+                </foreach>
+            </if>
+            <if test="roleName!=null and roleName!=''">
+                and role_name = #{roleName}
+            </if>
+            <if test="status!=null">
+                and `status` = #{status}
+            </if>
+        </where>
+    </select>
+
+</mapper>

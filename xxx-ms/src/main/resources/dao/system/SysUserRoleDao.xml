@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.chy.xxx.ms.modules.system.dao.SysUserRoleDao">
+
+    <sql id="Base_Column_List">
+        id, user_id, role_id, create_time, update_time
+    </sql>
+
+    <resultMap id="BaseResultMap" type="com.chy.xxx.ms.modules.system.po.SysUserRolePo">
+        <id property="id" column="id" jdbcType="BIGINT"/>
+        <result property="userId" column="user_id" jdbcType="BIGINT"/>
+        <result property="roleId" column="role_id" jdbcType="BIGINT"/>
+        <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
+        <result property="updateTime" column="update_time" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <select id="listByQo" resultType="com.chy.xxx.ms.modules.system.po.SysUserRolePo">
+        select
+        <include refid="Base_Column_List"/>
+        from t_sys_user_role
+        <where>
+            <if test="userId!=null">
+                and user_id = #{userId}
+            </if>
+            <if test="userIds!=null and userIds.size()>0">
+                and user_id in
+                <foreach collection="userIds" item="userId" open="(" close=")" separator=",">
+                    #{userId}
+                </foreach>
+            </if>
+        </where>
+    </select>
+
+    <delete id="deleteByUserId">
+        delete from t_sys_user_role
+        where user_id = #{userId}
+    </delete>
+
+</mapper>
