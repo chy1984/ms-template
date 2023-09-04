@@ -16,3 +16,10 @@ mybatis-plus:
   global-config:
     db-config:
       table-prefix: t_
+
+
+cache:
+  #是否启用缓存
+  enable: true
+  #key前缀
+  key-prefix: xxx
