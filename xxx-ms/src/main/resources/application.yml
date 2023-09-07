@@ -17,9 +17,43 @@ mybatis-plus:
     db-config:
       table-prefix: t_
 
+knife4j:
+  #是否启用增强配置
+  enable: true
+  #生产环境是否开启接口文档
+  production: false
 
 cache:
   #是否启用缓存
   enable: true
   #key前缀
   key-prefix: xxx
+
+security:
+  #白名单url，直接放行
+  ignore-urls:
+    - /**/*.html
+    - /**/*.css
+    - /**/*.js
+    - /**/*.png
+    - /**/*.jpg
+    - /**/*.gif
+    - /**/*.webp
+    - /**/*.ico
+    - /swagger-resources/**
+    - /v2/api-docs
+    - /v2/api-docs-ext
+    - /actuator/**
+    - /v1/system/users/login
+
+jwt.token:
+  #传递token的请求头字段
+  request-header: Authorization
+  #token前缀
+  prefix: 'Bearer '
+  #token加解密使用的密钥
+  secret: 'xxx-ms-secret'
+  #token有效期，单位：秒
+  expiration: 3600
+  #在token过期前多久秒内可以刷新token，单位：秒
+  refresh-before-expire: 1200
