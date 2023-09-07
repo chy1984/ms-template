@@ -57,3 +57,8 @@ jwt.token:
   expiration: 3600
   #在token过期前多久秒内可以刷新token，单位：秒
   refresh-before-expire: 1200
+
+system:
+  user:
+    #默认密码，至少4个字符
+    default-password: 1234

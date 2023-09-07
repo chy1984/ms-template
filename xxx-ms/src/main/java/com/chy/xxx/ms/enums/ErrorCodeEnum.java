@@ -25,6 +25,17 @@ public enum ErrorCodeEnum implements IErrorCode {
     NOT_IMPLEMENTED("900003", "接口暂未实现"),
     UNKNOWN_ERROR("999999", "系统繁忙，请稍后再试"),
 
+    /************************** 业务错误码-系统管理，以10开头 ****************************/
+    SYS_USER_NOT_EXIST("100000", "用户不存在"),
+    USERNAME_OR_PASSWORD_ERROR("100001", "用户名或密码错误"),
+    SYS_USER_DISABLED("100002", "账号已被禁用"),
+    USERNAME_ALREADY_EXIST("100003", "用户名已存在"),
+    OLD_PASSWORD_ERROR("100004", "原密码错误"),
+    SYS_ROLE_NOT_EXIST("100005", "角色不存在"),
+    ROLE_NAME_ALREADY_EXIST("100006", "角色名已存在"),
+    RESOURCE_REQ_METHOD_AND_URL_ALREADY_EXIST("100007", "资源请求方式、url已存在"),
+    SYS_RESOURCE_NOT_EXIST("100008", "资源不存在"),
+
     ;
 
     /**
