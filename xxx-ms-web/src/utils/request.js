@@ -33,7 +33,7 @@ service.interceptors.response.use(
   /**
    * If you want to get http information such as headers or status
    * Please return  response => response
-  */
+   */
 
   /**
    * Determine the request status by custom code
@@ -42,31 +42,31 @@ service.interceptors.response.use(
    */
   response => {
     const res = response.data
-
-    // if the custom code is not 20000, it is judged as an error.
-    if (res.code !== '000000') {
-      Message({
-        message: res.message || 'Error',
-        type: 'error',
-        duration: 5 * 1000
-      })
-
-      // 未登录、token不合法、token已过期
-      if (res.code === '900001') {
-        MessageBox.confirm('你已被退出, 是否重新登录', '退出登录', {
-          confirmButtonText: '重新登录',
-          cancelButtonText: '取消',
-          type: 'warning'
-        }).then(() => {
-          store.dispatch('user/resetToken').then(() => {
-            location.reload()
-          })
-        })
-      }
-      return Promise.reject(new Error(res.message || 'Error'))
-    } else {
+    // 操作成功
+    if (res.code === '000000') {
       return res
     }
+
+    Message({
+      message: res.message || 'Error',
+      type: 'error',
+      duration: 5 * 1000
+    })
+
+    // 未登录、token不合法、token已过期
+    if (res.code === '900001') {
+      MessageBox.confirm('你已被退出, 是否重新登录', '操作提示', {
+        confirmButtonText: '重新登录',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        store.dispatch('user/resetToken').then(() => {
+          location.reload()
+        })
+      })
+    }
+
+    return Promise.reject(new Error(res.message || 'Error'))
   },
   error => {
     console.log('err' + error) // for debug
