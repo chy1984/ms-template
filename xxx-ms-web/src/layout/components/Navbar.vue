@@ -18,7 +18,7 @@
           <a target="_blank" href="https://github.com/chy1984/ms-template">
             <el-dropdown-item>Github</el-dropdown-item>
           </a>
-          <el-dropdown-item @click.native="updatePasswordDialogVisible = true">
+          <el-dropdown-item @click.native="updatePasswordFormVisible = true">
             <span>修改密码</span>
           </el-dropdown-item>
           <el-dropdown-item @click.native="logout">
@@ -29,7 +29,7 @@
     </div>
 
     <!-- 修改密码表单 -->
-    <el-dialog title="修改密码" :visible.sync="updatePasswordDialogVisible">
+    <el-dialog title="修改密码" :visible.sync="updatePasswordFormVisible">
       <el-form ref="updatePasswordForm" :rules="updatePasswordRules" :model="updatePasswordForm"
                label-position="left" label-width="80px"
                style="width: 500px; margin-left:50px;"
@@ -89,7 +89,7 @@ export default {
       }
     }
     return {
-      updatePasswordDialogVisible: false,
+      updatePasswordFormVisible: false,
       updatePasswordForm: {
         oldPassword: '',
         newPassword: '',
@@ -111,7 +111,7 @@ export default {
     },
     async updatePassword() {
       await this.$store.dispatch('user/updatePassword', this.updatePasswordForm)
-      this.updatePasswordDialogVisible = false
+      this.updatePasswordFormVisible = false
       this.$message({
         type: 'success',
         message: '密码修改成功，请重新登录'

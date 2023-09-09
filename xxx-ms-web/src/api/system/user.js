@@ -9,7 +9,7 @@ export function login(data) {
   })
 }
 
-export function getDetail() {
+export function getUserDetail() {
   return request({
     url: '/v1/system/users/detail',
     method: 'get'
@@ -44,6 +44,13 @@ export function updateUser(data) {
     url: '/v1/system/users',
     method: 'put',
     data
+  })
+}
+
+export function deleteUser(id) {
+  return request({
+    url: `/v1/system/users/${id}`,
+    method: 'delete'
   })
 }
 

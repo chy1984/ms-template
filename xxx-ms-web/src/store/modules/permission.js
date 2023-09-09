@@ -7,18 +7,16 @@ import { asyncRoutes, constantRoutes } from '@/router'
  */
 function hasPermission(menuList, route) {
   if (route.meta && route.meta.resUrl) {
-    for (const menu in menuList) {
-      if (menu.resUrl === route.meta.resUrl) {
-        // 如果是父级菜单，总是显示
-        alert(menu.parentId === 0)
-        if (menu.parentId === 0) {
-          route.alwaysShow = true
-          if (menu.resIcon) {
-            route.meta.icon = menu.resIcon
-          }
+    const tempMenu = menuList.find(menu => menu.resUrl === route.meta.resUrl)
+    if (tempMenu) {
+      // 如果是顶级菜单，则总是显示
+      if (tempMenu.parentId === 0) {
+        route.alwaysShow = true
+        if (tempMenu.resIcon) {
+          route.meta.icon = tempMenu.resIcon
         }
-        return true
       }
+      return true
     }
     return false
   } else {

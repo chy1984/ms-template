@@ -38,6 +38,14 @@ export const realNameValidator = (rule, value, callback) => {
   }
 }
 
+export const roleNameValidator = (rule, value, callback) => {
+  if (value.length < 2 || value.length > 50) {
+    callback(new Error('角色名至少2个字符、至多50个字符'))
+  } else {
+    callback()
+  }
+}
+
 export const passwordValidator = (rule, value, callback) => {
   if (!commonFormat.test(value)) {
     callback(new Error('密码只能包含英文、数字、下划线'))
