@@ -50,7 +50,7 @@ export const constantRoutes = [
       path: 'dashboard',
       name: 'Dashboard',
       component: () => import('@/views/dashboard/index'),
-      meta: { title: 'Dashboard', icon: 'el-icon-menu' }
+      meta: { title: '首页', icon: 'el-icon-s-home' }
     }]
   }
 
@@ -67,9 +67,7 @@ export const asyncRoutes = [
     redirect: '/system/user',
     name: 'System',
     meta: {
-      title: '系统管理',
-      icon: 'el-icon-menu',
-      resUrl: '/system'
+      title: '系统管理', icon: 'el-icon-setting', resUrl: '/system'
     },
     children: [
       {

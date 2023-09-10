@@ -4,7 +4,7 @@
     <!-- 头部表单 -->
     <el-form :inline="true" size="small">
       <el-form-item>
-        <el-button type="success" @click="handleAdd">添加</el-button>
+        <el-button type="success" @click="handleAddRootMenu">添加根菜单</el-button>
       </el-form-item>
     </el-form>
 
@@ -19,12 +19,13 @@
       </el-table-column>
       <el-table-column label="资源类型" width="110">
         <template slot-scope="{row}">
-          <span>{{ resTypeMap[row.resType].resType }}</span>
+          <span>{{ resTypeMap[row.resType].desc }}</span>
         </template>
       </el-table-column>
       <el-table-column label="资源图标" width="90">
         <template slot-scope="{row}">
-          <i :class="row.resIcon"/>
+          <i v-if="row.resIcon.startsWith('el-icon-')" :class="row.resIcon"/>
+          <svg-icon v-else-if="row.resIcon!==''" :icon-class="row.resIcon"/>
         </template>
       </el-table-column>
       <el-table-column label="请求方式" width="100">
@@ -59,7 +60,7 @@
           >
             添加子资源
           </el-button>
-          <el-button type="danger" size="small" :disabled="row.children" @click="handleDelete(row)">
+          <el-button type="danger" size="small" :disabled="row.children!==undefined" @click="handleDelete(row)">
             删除
           </el-button>
         </template>
@@ -76,7 +77,9 @@
         </el-form-item>
         <el-form-item label="资源类型" prop="resType">
           <el-select v-model="saveResourceForm.resType" clearable placeholder="请选择资源类型" :disabled="isEdit">
-            <el-option v-for="item in resTypeEnum" :key="item.resType" :label="item.desc" :value="item.resType"/>
+            <el-option v-for="item in saveFormResTypeOptions" :key="item.resType" :label="item.desc"
+                       :value="item.resType"
+            />
           </el-select>
         </el-form-item>
         <el-form-item label="资源url" prop="resUrl">
@@ -89,8 +92,12 @@
             <el-option v-for="item in resReqMethodList" :key="item" :label="item" :value="item"/>
           </el-select>
         </el-form-item>
-        <el-form-item label="资源图标" prop="resIcon" v-show="saveResourceForm.resType === resTypeEnum.menu.resType">
-          <el-input v-model="saveResourceForm.resIcon" clearable placeholder="支持ElementUI图标、预置svg图标"/>
+        <el-form-item v-show="saveResourceForm.resType === resTypeEnum.menu.resType" label="资源图标" prop="resIcon">
+          <el-input v-model="saveResourceForm.resIcon" class="res-icon-input" clearable
+                    placeholder="支持ElementUI图标、预置的svg图标"
+          />
+          <i v-if="saveResourceForm.resIcon.startsWith('el-icon-')" :class="saveResourceForm.resIcon"/>
+          <svg-icon v-else-if="saveResourceForm.resIcon!==''" :icon-class="saveResourceForm.resIcon"/>
         </el-form-item>
         <el-form-item label="排序号" prop="seq">
           <el-input v-model="saveResourceForm.seq" type="number" clearable placeholder="数值越小 展示越靠前"/>
@@ -102,7 +109,7 @@
         </el-form-item>
         <el-form-item label="父资源" prop="parentId">
           <el-cascader v-model="saveResourceForm.parentId" ref="parentResourceCascader" class="parent-resource-cascader"
-                       :options="resourceTree" :props="parentResourceTreeProps" clearable filterable
+                       :options="resourceTree" :props="parentResourceTreeProps" disabled clearable filterable
           >
           </el-cascader>
         </el-form-item>
@@ -170,6 +177,7 @@ export default {
         status: undefined,
         parentId: undefined
       },
+      saveFormResTypeOptions: resTypeEnum, // 新增、编辑表单的资源类型选项
       resourceTree: [], // 资源树
       parentResourceTree: [], // 父资源树
       parentResourceTreeProps: {
@@ -223,9 +231,10 @@ export default {
         parentId: undefined
       }
     },
-    handleAdd() {
+    handleAddRootMenu() {
       this.isEdit = false
       this.resetSaveResourceForm()
+      this.saveFormResTypeOptions = [resTypeEnum.menu]
       this.saveResourceFormVisible = true
       this.$nextTick(() => {
         this.$refs['saveResourceForm'].clearValidate()
@@ -235,6 +244,11 @@ export default {
       this.isEdit = false
       this.resetSaveResourceForm()
       this.saveResourceForm.parentId = row.id
+      if (row.resType === resTypeEnum.menu.resType) {
+        this.saveFormResTypeOptions = [resTypeEnum.menu, resTypeEnum.operation]
+      } else if (row.resType === resTypeEnum.operation.resType) {
+        this.saveFormResTypeOptions = [resTypeEnum.interface]
+      }
       this.saveResourceFormVisible = true
       this.$nextTick(() => {
         this.$refs['saveResourceForm'].clearValidate()
@@ -260,6 +274,7 @@ export default {
     handleEdit(row) {
       this.isEdit = true
       this.saveResourceForm = Object.assign({}, row) // copy obj
+      this.saveFormResTypeOptions = resTypeEnum
       this.saveResourceFormVisible = true
       this.$nextTick(() => {
         this.$refs['saveResourceForm'].clearValidate()
@@ -312,6 +327,11 @@ export default {
 <style scoped>
 .parent-resource-cascader {
   width: 100%;
+}
+
+.res-icon-input {
+  width: 80%;
+  margin-right: 20px;
 }
 </style>
 

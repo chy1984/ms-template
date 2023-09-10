@@ -4,8 +4,12 @@
 
     <breadcrumb class="breadcrumb-container"/>
 
-    <!-- 右上角下拉菜单 -->
+    <!-- 右上角菜单 -->
     <div class="right-menu">
+      <template v-if="device!=='mobile'">
+        <screenfull id="screenfull" class="right-menu-item hover-effect"/>
+      </template>
+
       <el-dropdown class="avatar-container" trigger="click">
         <div class="avatar-wrapper">
           <img src="@/assets/images/avatar.gif" class="user-avatar">
@@ -45,7 +49,7 @@
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
-        <el-button @click="dialogFormVisible = false">
+        <el-button @click="updatePasswordFormVisible = false">
           取消
         </el-button>
         <el-button type="primary" @click="updatePassword">
@@ -61,16 +65,19 @@
 import { mapGetters } from 'vuex'
 import Breadcrumb from '@/components/Breadcrumb'
 import Hamburger from '@/components/Hamburger'
-import { passwordValidator } from '@/utils/validate'
+import Screenfull from '@/components/Screenfull'
+import { passwordValidator } from '@/api/system/validator'
 
 export default {
   components: {
     Breadcrumb,
-    Hamburger
+    Hamburger,
+    Screenfull
   },
   computed: {
     ...mapGetters([
-      'sidebar'
+      'sidebar',
+      'device'
     ])
   },
   data() {

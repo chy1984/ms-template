@@ -7,21 +7,9 @@ import { asyncRoutes, constantRoutes } from '@/router'
  */
 function hasPermission(menuList, route) {
   if (route.meta && route.meta.resUrl) {
-    const tempMenu = menuList.find(menu => menu.resUrl === route.meta.resUrl)
-    if (tempMenu) {
-      // 如果是顶级菜单，则总是显示
-      if (tempMenu.parentId === 0) {
-        route.alwaysShow = true
-        if (tempMenu.resIcon) {
-          route.meta.icon = tempMenu.resIcon
-        }
-      }
-      return true
-    }
-    return false
-  } else {
-    return true
+    return menuList.some(menu => menu.resUrl === route.meta.resUrl)
   }
+  return true
 }
 
 /**
@@ -37,6 +25,14 @@ export function filterAsyncRoutes(routes, menuList) {
     if (hasPermission(menuList, tmp)) {
       if (tmp.children) {
         tmp.children = filterAsyncRoutes(tmp.children, menuList)
+      }
+      // 即使只有一个子菜单也总是显示父菜单
+      if (tmp.children) {
+        route.alwaysShow = true
+      }
+      // 在路由配置中指定各个菜单的默认icon，如果接口有下发则使用接口下发的icon
+      if (tmp.resIcon) {
+        route.meta.icon = tmp.resIcon
       }
       res.push(tmp)
     }

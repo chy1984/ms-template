@@ -44,7 +44,7 @@
       <el-button :loading="loading" type="primary" style="width:100%;margin-bottom:30px;" @click.native.prevent="handleLogin">Login</el-button>
 
       <div class="tips">
-        <span style="margin-right:20px;">如有问题，请联系 chy chy@qq.com</span>
+        <span style="margin-right:20px;">如有问题，请联系 chy chy@xxx.com</span>
       </div>
 
     </el-form>
@@ -52,7 +52,7 @@
 </template>
 
 <script>
-import { usernameValidator, passwordValidator } from '@/utils/validate'
+import { usernameValidator, passwordValidator } from '@/api/system/validator'
 
 export default {
   name: 'Login',
