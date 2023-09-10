@@ -46,3 +46,9 @@ export function saveRoleResource(data) {
     data
   })
 }
+
+// 角色状态枚举，状态对应关系统一维护在此枚举中
+export const roleStatusEnum = {
+  normal: { status: 0, desc: '正常', tagType: 'success' },
+  disabled: { status: 1, desc: '禁用', tagType: 'danger' }
+}

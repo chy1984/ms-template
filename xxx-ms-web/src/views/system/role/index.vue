@@ -8,7 +8,7 @@
       </el-form-item>
       <el-form-item label="状态">
         <el-select v-model="roleQuery.status" clearable>
-          <el-option v-for="item in roleStatusList" :key="item.value" :label="item.label" :value="item.value"/>
+          <el-option v-for="item in roleStatusEnum" :key="item.status" :label="item.desc" :value="item.status"/>
         </el-select>
       </el-form-item>
       <el-form-item>
@@ -27,15 +27,15 @@
       </el-table-column>
       <el-table-column label="状态" align="center" width="120">
         <template slot-scope="{row}">
-          <el-tag>
-            {{ row.status | statusFilter }}
+          <el-tag :type="roleStatusMap[row.status].tagType">
+            {{ roleStatusMap[row.status].desc }}
           </el-tag>
         </template>
       </el-table-column>
       <el-table-column label="包含用户" align="center">
         <template slot-scope="{row}">
           <el-tag v-if="row.sysUserList" v-for="sysUser of row.sysUserList" :key="sysUser.username">
-            {{ sysUser.username + '_' + sysUser.realName }}
+            {{ `${sysUser.username}_${sysUser.realName}` }}
           </el-tag>
         </template>
       </el-table-column>
@@ -55,16 +55,17 @@
     </el-table>
 
     <!-- 分页 -->
-    <el-pagination
-      :v-show="rolePage.total > 0"
-      :total="rolePage.total"
-      :current-page="roleQuery.pageNum"
-      :page-size="roleQuery.pageSize"
-      :page-sizes="[10, 20, 50, 100]"
-      layout="total, sizes, prev, pager, next, jumper"
-      @size-change="handlerSizeChange"
-      @current-change="handleCurrentChange"
-    />
+    <div v-show="rolePage.total>0" class="pagination-container">
+      <el-pagination
+        :total="rolePage.total"
+        :current-page="roleQuery.pageNum"
+        :page-size="roleQuery.pageSize"
+        :page-sizes="[10, 20, 50, 100]"
+        layout="total, sizes, prev, pager, next, jumper"
+        @size-change="handlerSizeChange"
+        @current-change="handleCurrentChange"
+      />
+    </div>
 
     <!-- 添加、编辑表单 -->
     <el-dialog :title="isEditRole ? '编辑系统角色' : '添加系统角色'" :visible.sync="saveRoleFormVisible">
@@ -72,11 +73,11 @@
                style="width: 500px; margin-left:50px;"
       >
         <el-form-item label="角色名称" prop="roleName">
-          <el-input v-model="saveRoleForm.roleName" clearable placeholder="只支持英文、数字、下划线，5~50字"/>
+          <el-input v-model="saveRoleForm.roleName" clearable placeholder="2~50个字符"/>
         </el-form-item>
         <el-form-item label="状态" prop="status">
           <el-select v-model="saveRoleForm.status" clearable placeholder="请选择状态">
-            <el-option v-for="item in roleStatusList" :key="item.value" :label="item.label" :value="item.value"/>
+            <el-option v-for="item in roleStatusEnum" :key="item.status" :label="item.desc" :value="item.status"/>
           </el-select>
         </el-form-item>
       </el-form>
@@ -121,32 +122,30 @@
 </template>
 
 <script>
-import { pageRole, addRole, updateRole, deleteRole, listRoleResource, saveRoleResource } from '@/api/system/role'
-import { listResource } from '@/api/system/resource'
-import { roleNameValidator } from '@/utils/validate'
+import {
+  pageRole,
+  addRole,
+  updateRole,
+  deleteRole,
+  listRoleResource,
+  saveRoleResource,
+  roleStatusEnum
+} from '@/api/system/role'
+import { listResource, resTypeEnum } from '@/api/system/resource'
+import { roleNameValidator } from '@/api/system/validator'
 
-// 状态对应关系统一维护在此list中
-const roleStatusList = [
-  { value: 0, label: '正常' },
-  { value: 1, label: '禁用' }
-]
-
-// 将list转换为map，{0:'正常', 1:'禁用'}
-const roleStatusMap = roleStatusList.reduce((acc, cur) => {
-  acc[cur.value] = cur.label
+// 枚举转换为map，key是status
+const roleStatusMap = Object.values(roleStatusEnum).reduce((acc, cur) => {
+  acc[cur.status] = cur
   return acc
 }, {})
 
 export default {
   name: 'SystemRole',
-  filters: {
-    statusFilter(status) {
-      return roleStatusMap[status]
-    }
-  },
   data() {
     return {
-      roleStatusList: roleStatusList,
+      roleStatusEnum: roleStatusEnum,
+      roleStatusMap: roleStatusMap,
       isEditRole: false,
       listLoading: true,
       roleQuery: {
@@ -156,7 +155,7 @@ export default {
         pageSize: 10
       },
       resourceQuery: {
-        resTypes: [1, 2], // 菜单、按钮/操作 todo: 定义为常量
+        resTypes: [resTypeEnum.menu.resType, resTypeEnum.operation.resType], // 菜单、按钮/操作
         status: undefined // 不过滤状态，允许分配非生效中的资源
       },
       roleResourceQuery: {
@@ -281,7 +280,7 @@ export default {
       })
     },
     handleDelete(row) {
-      this.$confirm(`是否删除系统角色【${row.roleName}】?`, '操作提示', {
+      this.$confirm(`是否删除系统角色【${row.roleName}】？会一并删除对应的用户—角色、角色—资源关联关系。`, '操作提示', {
         confirmButtonText: '确认',
         cancelButtonText: '取消',
         type: 'warning'

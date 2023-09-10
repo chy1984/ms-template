@@ -17,9 +17,7 @@
       </el-form-item>
       <el-form-item label="状态">
         <el-select v-model="userQuery.status" clearable>
-          <el-option v-for="userStatus in userStatusList" :key="userStatus.status" :label="userStatus.desc"
-                     :value="userStatus.status"
-          />
+          <el-option v-for="item in userStatusEnum" :key="item.status" :label="item.desc" :value="item.status"/>
         </el-select>
       </el-form-item>
       <el-form-item label="角色">
@@ -46,7 +44,7 @@
           <span>{{ row.realName }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="手机号" align="center" width="150">
+      <el-table-column label="手机号" align="center" width="140">
         <template slot-scope="{row}">
           <span>{{ row.tel }}</span>
         </template>
@@ -56,21 +54,21 @@
           <span>{{ row.email }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="状态" align="center" width="110">
+      <el-table-column label="状态" align="center" width="100">
         <template slot-scope="{row}">
           <el-tag :type="userStatusMap[row.status].tagType">
-            {{ row.status | userStatusFilter }}
+            {{ userStatusMap[row.status].desc }}
           </el-tag>
         </template>
       </el-table-column>
       <el-table-column label="角色" align="center">
         <template slot-scope="{row}">
           <el-tag v-for="roleId of row.roleIds" :key="roleId">
-            {{ roleMap[roleId] }}
+            {{ roleMap[roleId].roleName }}
           </el-tag>
         </template>
       </el-table-column>
-      <el-table-column label="操作" align="center" width="250">
+      <el-table-column label="操作" align="center" width="240">
         <template slot-scope="{row}">
           <el-button type="primary" size="small" @click="handleEdit(row)">
             编辑
@@ -86,16 +84,17 @@
     </el-table>
 
     <!-- 分页 -->
-    <el-pagination
-      :v-show="userPage.total > 0"
-      :total="userPage.total"
-      :current-page="userQuery.pageNum"
-      :page-size="userQuery.pageSize"
-      :page-sizes="[10, 20, 50, 100]"
-      layout="total, sizes, prev, pager, next, jumper"
-      @size-change="handlerSizeChange"
-      @current-change="handleCurrentChange"
-    />
+    <div v-show="userPage.total>0" class="pagination-container">
+      <el-pagination
+        :total="userPage.total"
+        :current-page="userQuery.pageNum"
+        :page-size="userQuery.pageSize"
+        :page-sizes="[10, 20, 50, 100]"
+        layout="total, sizes, prev, pager, next, jumper"
+        @size-change="handlerSizeChange"
+        @current-change="handleCurrentChange"
+      />
+    </div>
 
     <!-- 添加、编辑表单 -->
     <el-dialog :title="isEdit ? '编辑系统用户' : '添加系统用户'" :visible.sync="saveUserFormVisible">
@@ -103,10 +102,10 @@
                style="width: 500px; margin-left:50px;"
       >
         <el-form-item label="用户名" prop="username">
-          <el-input v-model="saveUserForm.username" :disabled="isEdit" clearable placeholder="只支持英文、数字、下划线，5~50字"/>
+          <el-input v-model="saveUserForm.username" :disabled="isEdit" clearable placeholder="只能包含英文、数字、下划线，2~50个字符"/>
         </el-form-item>
         <el-form-item label="真实姓名" prop="realName">
-          <el-input v-model="saveUserForm.realName" :disabled="isEdit" clearable/>
+          <el-input v-model="saveUserForm.realName" :disabled="isEdit" clearable placeholder="只能包含中英文、空格、点号，2~50个字符"/>
         </el-form-item>
         <el-form-item label="手机号" prop="tel">
           <el-input v-model="saveUserForm.tel" type="tel" clearable/>
@@ -116,14 +115,12 @@
         </el-form-item>
         <el-form-item label="状态" prop="status">
           <el-select v-model="saveUserForm.status" clearable placeholder="请选择状态">
-            <el-option v-for="userStatus in userStatusList" :key="userStatus.status" :label="userStatus.desc"
-                       :value="userStatus.status"
-            />
+            <el-option v-for="item in userStatusEnum" :key="item.status" :label="item.desc" :value="item.status"/>
           </el-select>
         </el-form-item>
         <el-form-item label="角色" prop="roleIds">
           <el-select v-model="saveUserForm.roleIds" class="dialog-role-select" clearable multiple filterable
-                     placeholder="请选择一个或多个角色"
+                     placeholder="请选择1个或多个角色"
           >
             <el-option v-for="role in roleList" :key="role.id" :label="role.roleName" :value="role.id"/>
           </el-select>
@@ -143,18 +140,12 @@
 </template>
 
 <script>
-import { pageUser, addUser, updateUser, deleteUser, resetPassword } from '@/api/system/user'
+import { pageUser, addUser, updateUser, deleteUser, resetPassword, userStatusEnum } from '@/api/system/user'
 import { pageRole } from '@/api/system/role'
-import { usernameValidator, realNameValidator, telValidator, emailValidator } from '@/utils/validate'
+import { usernameValidator, realNameValidator, telValidator } from '@/api/system/validator'
 
-// 状态对应关系统一维护在此list中
-const userStatusList = [
-  { status: 0, desc: '正常', tagType: 'success' },
-  { status: 1, desc: '禁用', tagType: 'danger' }
-]
-
-// 将list转换为map
-const userStatusMap = userStatusList.reduce((acc, cur) => {
+// 枚举转换为map，key是status
+const userStatusMap = Object.values(userStatusEnum).reduce((acc, cur) => {
   acc[cur.status] = cur
   return acc
 }, {})
@@ -168,7 +159,7 @@ export default {
   },
   data() {
     return {
-      userStatusList: userStatusList,
+      userStatusEnum: userStatusEnum,
       userStatusMap: userStatusMap,
       isEdit: false,
       listLoading: true,
@@ -184,7 +175,7 @@ export default {
       },
       roleQuery: {
         roleName: '',
-        status: 0,
+        status: undefined,
         pageNum: 1,
         pageSize: 10000
       },
@@ -209,9 +200,9 @@ export default {
         username: [{ required: true, trigger: 'blur', validator: usernameValidator }],
         realName: [{ required: true, trigger: 'blur', validator: realNameValidator }],
         tel: [{ required: true, trigger: 'blur', validator: telValidator }],
-        email: [{ required: true, trigger: 'blur', validator: emailValidator }],
-        status: [{ required: true, message: '请选择状态', trigger: 'blur' }],
-        roleIds: [{ required: true, message: '请选择角色', trigger: 'blur' }]
+        email: [{ type: 'email', required: true, trigger: 'blur', message: '请输入正确的邮箱' }],
+        status: [{ required: true, trigger: 'change', message: '请选择状态' }],
+        roleIds: [{ required: true, trigger: 'change', message: '至少选择1个角色' }]
       }
     }
   },
@@ -231,7 +222,7 @@ export default {
       pageRole(this.roleQuery).then(response => {
         this.roleList = response.data.list
         this.roleMap = this.roleList.reduce((acc, cur) => {
-          acc[cur.id] = cur.roleName
+          acc[cur.id] = cur
           return acc
         }, {})
       })
@@ -316,7 +307,7 @@ export default {
       })
     },
     handleDelete(row) {
-      this.$confirm(`是否删除用户【${row.username}_${row.realName}】?`, '操作提示', {
+      this.$confirm(`是否删除系统用户【${row.username}_${row.realName}】？会一并删除对应的用户—角色关联关系。`, '操作提示', {
         confirmButtonText: '确认',
         cancelButtonText: '取消',
         type: 'warning'
