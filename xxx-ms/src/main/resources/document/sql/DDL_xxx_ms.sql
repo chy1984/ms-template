@@ -59,7 +59,7 @@ CREATE TABLE `t_sys_resource`
     `res_type`       tinyint(4)   NOT NULL COMMENT '资源类型：1菜单，2操作/按钮，3接口',
     `res_icon`       varchar(255) NOT NULL DEFAULT '' COMMENT '资源图标',
     `res_url`        varchar(150) NOT NULL COMMENT '资源url',
-    `res_req_method` varchar(20) NOT NULL DEFAULT '' COMMENT '资源请求方式：GET、POST、PUT、DELETE',
+    `res_req_method` varchar(20) NOT NULL DEFAULT '' COMMENT '资源请求方式：GET、POST、PUT、PATCH、DELETE、HEAD',
     `seq`            int(11)      NOT NULL DEFAULT 0 COMMENT '同级别排序号，值越小展示越靠前',
     `status`         tinyint(4)   NOT NULL DEFAULT 0 COMMENT '资源状态：0正常，1禁用',
     `parent_id`      bigint(20)   NOT NULL DEFAULT 0 COMMENT '上级资源id',

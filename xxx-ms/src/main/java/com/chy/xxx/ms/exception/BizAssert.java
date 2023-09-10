@@ -147,4 +147,7 @@ public class BizAssert {
         }
     }
 
+    private BizAssert() {
+    }
+
 }

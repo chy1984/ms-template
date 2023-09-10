@@ -1,8 +1,14 @@
 package com.chy.xxx.ms.modules.system.enums;
 
+import com.chy.xxx.ms.exception.RtBizAssert;
+import com.google.common.collect.ImmutableMap;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * 系统资源类型枚举
@@ -22,13 +28,26 @@ public enum SysResourceTypeEnum {
     ;
 
     /**
-     * 类型code
+     * 资源类型code
      */
-    private final Integer type;
+    private final Integer resType;
 
     /**
      * 描述
      */
     private final String desc;
+
+    public static final ImmutableMap<Integer, List<Integer>> ALLOW_PARENT_RES_MAPPING = ImmutableMap.<Integer, List<Integer>>builder()
+            .put(MENU.resType, Arrays.asList(MENU.resType, null, 0))
+            .put(OPERATION.resType, Collections.singletonList(MENU.resType))
+            .put(INTERFACE.resType, Collections.singletonList(OPERATION.resType))
+            .build();
+
+    public static boolean validateParentResMapping(Integer resType, Integer parentResType) {
+        RtBizAssert.assertNotNull(resType, "resType不能为空");
+        List<Integer> allowParentResTypeList = ALLOW_PARENT_RES_MAPPING.get(resType);
+        RtBizAssert.assertNotNull(allowParentResTypeList, "不合法的resType：" + resType);
+        return allowParentResTypeList.contains(parentResType);
+    }
 
 }

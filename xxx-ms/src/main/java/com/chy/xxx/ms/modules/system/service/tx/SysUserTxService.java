@@ -1,5 +1,6 @@
 package com.chy.xxx.ms.modules.system.service.tx;
 
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.chy.xxx.ms.modules.system.po.SysUserPo;
 import com.chy.xxx.ms.modules.system.po.SysUserRolePo;
 import com.chy.xxx.ms.modules.system.service.db.SysUserDbService;
@@ -47,6 +48,18 @@ public class SysUserTxService {
         sysUserDbService.updateById(sysUserUpdatePo);
         sysUserRoleDbService.deleteByUserId(sysUserUpdatePo.getId());
         sysUserRoleDbService.saveBatch(sysUserRoleInsertPos);
+    }
+
+    /**
+     * 删除系统用户
+     *
+     * @param userId 用户id
+     */
+    public void deleteUser(Long userId) {
+        sysUserDbService.removeById(userId);
+        sysUserRoleDbService.remove(new UpdateWrapper<>(SysUserRolePo.builder()
+                .userId(userId)
+                .build()));
     }
 
 }

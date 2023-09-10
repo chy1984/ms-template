@@ -21,6 +21,9 @@
         <include refid="Base_Column_List"/>
         from t_sys_role_resource
         <where>
+            <if test="roleId!=null">
+                and role_id = #{roleId}
+            </if>
             <if test="roleIds!=null and roleIds.size()>0">
                 and role_id in
                 <foreach collection="roleIds" item="roleId" open="(" close=")" separator=",">

@@ -112,9 +112,9 @@ public class SysUserResourceBo implements Serializable {
                 .realName(sysUserPo.getRealName())
                 .password(sysUserPo.getPassword())
                 .status(sysUserPo.getStatus())
-                .menuList(resTypeMap.getOrDefault(SysResourceTypeEnum.MENU.getType(), Collections.emptyList()))
-                .operationList(resTypeMap.getOrDefault(SysResourceTypeEnum.OPERATION.getType(), Collections.emptyList()))
-                .interfaceList(resTypeMap.getOrDefault(SysResourceTypeEnum.INTERFACE.getType(), Collections.emptyList()))
+                .menuList(resTypeMap.getOrDefault(SysResourceTypeEnum.MENU.getResType(), Collections.emptyList()))
+                .operationList(resTypeMap.getOrDefault(SysResourceTypeEnum.OPERATION.getResType(), Collections.emptyList()))
+                .interfaceList(resTypeMap.getOrDefault(SysResourceTypeEnum.INTERFACE.getResType(), Collections.emptyList()))
                 .build();
     }
 

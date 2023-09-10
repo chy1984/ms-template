@@ -24,4 +24,14 @@ public class SysUserRoleQo {
      */
     private List<Long> userIds;
 
+    /**
+     * 角色id
+     */
+    private Long roleId;
+
+    /**
+     * 角色id列表
+     */
+    private List<Long> roleIds;
+
 }

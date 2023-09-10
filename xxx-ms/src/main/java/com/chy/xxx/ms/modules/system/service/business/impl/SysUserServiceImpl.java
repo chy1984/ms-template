@@ -25,7 +25,7 @@ import com.chy.xxx.ms.modules.system.vo.req.SysUserUpdateReqVo;
 import com.chy.xxx.ms.modules.system.vo.resp.SysResourceRespVo;
 import com.chy.xxx.ms.modules.system.vo.resp.SysUserDetailRespVo;
 import com.chy.xxx.ms.modules.system.vo.resp.SysUserLoginRespVo;
-import com.chy.xxx.ms.modules.system.vo.resp.SysUserRespVo;
+import com.chy.xxx.ms.modules.system.vo.resp.SysUserPageRespVo;
 import com.chy.xxx.ms.request.RequestContextHolder;
 import com.chy.xxx.ms.response.CommonPage;
 import com.chy.xxx.ms.response.CommonResp;
@@ -37,6 +37,7 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -166,28 +167,53 @@ public class SysUserServiceImpl implements SysUserService {
     }
 
     @Override
-    public CommonResp<CommonPage<SysUserRespVo>> page(SysUserPageReqVo reqVo) {
+    public CommonResp<Void> delete(Long id) {
+        SysUserPo sysUserPo = sysUserDbService.getById(id);
+        if (sysUserPo == null) {
+            return CommonResp.fail(ErrorCodeEnum.SYS_USER_NOT_EXIST);
+        }
+        sysUserTxService.deleteUser(id);
+        return CommonResp.success();
+    }
+
+    @Override
+    public CommonResp<CommonPage<SysUserPageRespVo>> page(SysUserPageReqVo reqVo) {
+        //通过roleId置换出userId
+        List<Long> userIds = Collections.emptyList();
+        if (reqVo.getRoleId() != null) {
+            List<SysUserRolePo> sysUserRolePos = sysUserRoleDbService.listByQo(SysUserRoleQo.builder()
+                    .roleId(reqVo.getRoleId())
+                    .build());
+            if (CollectionUtils.isEmpty(sysUserRolePos)) {
+                return CommonResp.success(CommonPage.empty());
+            }
+            userIds = sysUserRolePos.stream()
+                    .map(SysUserRolePo::getUserId)
+                    .collect(toList());
+        }
+
         //分页查询用户信息
         Page<SysUserPo> page = PageMethod.startPage(reqVo.getPageNum(), reqVo.getPageSize());
         SysUserQo sysUserQo = sysUserMapper.pageReqVoToQo(reqVo);
+        sysUserQo.setIds(userIds);
         List<SysUserPo> sysUserPos = sysUserDbService.listByQo(sysUserQo);
         if (CollectionUtils.isEmpty(sysUserPos)) {
             return CommonResp.success(CommonPage.empty());
         }
 
         //查询用户-角色关联信息
-        List<Long> userIds = sysUserPos.stream()
+        userIds = sysUserPos.stream()
                 .map(SysUserPo::getId)
                 .collect(toList());
         List<SysUserRolePo> sysUserRolePos = sysUserRoleDbService.listByQo(SysUserRoleQo.builder()
                 .userIds(userIds)
                 .build());
-        Map<Long, List<Long>> sysUserRoleMap = sysUserRolePos.stream()
+        Map<Long, List<Long>> sysUserRolesMap = sysUserRolePos.stream()
                 .collect(groupingBy(SysUserRolePo::getUserId, mapping(SysUserRolePo::getRoleId, toList())));
 
-        //填充角色名
-        List<SysUserRespVo> respVos = sysUserMapper.posToRespVos(sysUserPos);
-        respVos.forEach(respVo -> respVo.setRoleIds(sysUserRoleMap.get(respVo.getId())));
+        //填充角色id列表
+        List<SysUserPageRespVo> respVos = sysUserMapper.posToPageRespVos(sysUserPos);
+        respVos.forEach(respVo -> respVo.setRoleIds(sysUserRolesMap.get(respVo.getId())));
 
         return CommonResp.success(CommonPage.restPage(page, respVos));
     }

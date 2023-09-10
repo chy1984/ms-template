@@ -35,6 +35,8 @@ public enum ErrorCodeEnum implements IErrorCode {
     ROLE_NAME_ALREADY_EXIST("100006", "角色名已存在"),
     RESOURCE_REQ_METHOD_AND_URL_ALREADY_EXIST("100007", "资源请求方式、url已存在"),
     SYS_RESOURCE_NOT_EXIST("100008", "资源不存在"),
+    CANNOT_DELETE_RESOURCE_WITH_SUB_RESOURCES("100009", "该资源下挂有子资源，不能被删除"),
+    PARENT_RESOURCE_MAPPING_ERROR("100010", "父子资源关联关系不合法"),
 
     ;
 

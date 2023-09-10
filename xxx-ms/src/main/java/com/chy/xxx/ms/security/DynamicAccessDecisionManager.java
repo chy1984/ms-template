@@ -20,7 +20,6 @@ import java.util.Collection;
 @Component
 public class DynamicAccessDecisionManager implements AccessDecisionManager {
 
-
     /**
      * 校验用户是否有当前请求资源的访问权限
      *

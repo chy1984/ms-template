@@ -1,5 +1,6 @@
 package com.chy.xxx.ms.security;
 
+import com.chy.xxx.ms.modules.system.enums.SysResourceStatusEnum;
 import com.chy.xxx.ms.modules.system.enums.SysResourceTypeEnum;
 import com.chy.xxx.ms.modules.system.po.SysResourcePo;
 import com.chy.xxx.ms.modules.system.qo.SysResourceQo;
@@ -30,7 +31,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class DynamicSecurityMetadataSource implements FilterInvocationSecurityMetadataSource, CommandLineRunner {
 
     /**
-     * 存储所有接口资源的访问规则
+     * 存储所有接口资源的访问规则，todo：资源更新时刷新此map
      */
     private static final Map<String, ConfigAttribute> CONFIG_ATTRIBUTE_MAP = new ConcurrentHashMap<>();
 
@@ -69,17 +70,18 @@ public class DynamicSecurityMetadataSource implements FilterInvocationSecurityMe
 
     @Override
     public void run(String... args) throws Exception {
-        //服务启动后自动加载系统接口资源
-        log.info("开始加载系统接口资源的访问规则...");
+        //服务启动后自动加载生效中的系统接口资源
+        log.info("开始加载系统接口资源...");
         List<SysResourcePo> sysResourcePos = sysResourceDbService.listByQo(SysResourceQo.builder()
-                .resType(SysResourceTypeEnum.INTERFACE.getType())
+                .resType(SysResourceTypeEnum.INTERFACE.getResType())
+                .status(SysResourceStatusEnum.NORMAL.getStatus())
                 .build());
         for (SysResourcePo sysResourcePo : sysResourcePos) {
             String key = sysResourcePo.getResReqMethod() + MsSecurityConstant.RES_SEPARATOR + sysResourcePo.getResUrl();
             ConfigAttribute configAttribute = new SecurityConfig(sysResourcePo.getId() + MsSecurityConstant.RES_SEPARATOR + sysResourcePo.getResName());
             CONFIG_ATTRIBUTE_MAP.put(key, configAttribute);
         }
-        log.info("系统接口资源的访问规则加载完毕,共计{}个", CONFIG_ATTRIBUTE_MAP.size());
+        log.info("系统接口资源加载完毕,共计{}个", CONFIG_ATTRIBUTE_MAP.size());
     }
 
 }

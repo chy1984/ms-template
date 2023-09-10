@@ -5,9 +5,10 @@ import com.chy.xxx.ms.modules.system.qo.SysRoleQo;
 import com.chy.xxx.ms.modules.system.vo.req.SysRoleAddReqVo;
 import com.chy.xxx.ms.modules.system.vo.req.SysRolePageReqVo;
 import com.chy.xxx.ms.modules.system.vo.req.SysRoleUpdateReqVo;
-import com.chy.xxx.ms.modules.system.vo.resp.SysRoleRespVo;
-import com.github.pagehelper.Page;
+import com.chy.xxx.ms.modules.system.vo.resp.SysRolePageRespVo;
 import org.mapstruct.Mapper;
+
+import java.util.List;
 
 import static org.mapstruct.MappingConstants.ComponentModel.SPRING;
 
@@ -25,6 +26,6 @@ public interface SysRoleMapper {
 
     SysRoleQo pageReqVoToQo(SysRolePageReqVo reqVo);
 
-    Page<SysRoleRespVo> poPageToRespVoPage(Page<SysRolePo> poPage);
+    List<SysRolePageRespVo> posToPageRespVos(List<SysRolePo> pos);
 
 }

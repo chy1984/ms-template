@@ -2,6 +2,7 @@ package com.chy.xxx.ms.security;
 
 import com.chy.xxx.ms.modules.system.bo.SysUserResourceBo;
 import com.chy.xxx.ms.modules.system.cache.SysUserResourceCacheService;
+import com.chy.xxx.ms.modules.system.enums.SysUserStatusEnum;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -23,6 +24,9 @@ public class SysUserDetailsServiceImpl implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         SysUserResourceBo sysUserResourceBo = sysUserResourceCacheService.getUseResourceCache(username);
+        if (SysUserStatusEnum.NOT_EXIST.getStatus().equals(sysUserResourceBo.getStatus())) {
+            throw new UsernameNotFoundException("username=" + username);
+        }
         return SysUserDetails.builder()
                 .username(sysUserResourceBo.getUsername())
                 .password(sysUserResourceBo.getPassword())

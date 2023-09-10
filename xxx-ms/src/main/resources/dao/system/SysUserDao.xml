@@ -28,6 +28,12 @@
             <if test="id!=null">
                 and id = #{id}
             </if>
+            <if test="ids!=null and ids.size() > 0">
+                and id in
+                <foreach collection="ids" item="id" open="(" close=")" separator=",">
+                    #{id}
+                </foreach>
+            </if>
             <if test="username!=null and username!=''">
                 and username = #{username}
             </if>
@@ -40,7 +46,7 @@
             <if test="email!=null and email!=''">
                 and email = #{email}
             </if>
-            <if test="status!=null and status!=''">
+            <if test="status!=null">
                 and `status` = #{status}
             </if>
         </where>

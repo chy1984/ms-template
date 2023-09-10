@@ -15,6 +15,11 @@ import java.util.List;
 public class SysRoleResourceQo {
 
     /**
+     * 角色id
+     */
+    private Long roleId;
+
+    /**
      * 角色id列表
      */
     private List<Long> roleIds;

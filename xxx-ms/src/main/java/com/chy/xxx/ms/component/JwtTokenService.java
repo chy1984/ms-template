@@ -10,7 +10,6 @@ import io.jsonwebtoken.SignatureAlgorithm;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateUtils;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
@@ -57,17 +56,6 @@ public class JwtTokenService {
                 .username(claims.getSubject())
                 .realName(claims.get(CLAIM_KEY_REAL_NAME, String.class))
                 .build();
-    }
-
-    /**
-     * 校验用户token
-     *
-     * @param token       http请求传递的token
-     * @param userDetails 从数据库中查询出来的用户信息
-     */
-    public boolean validateToken(String token, UserDetails userDetails) {
-        String username = this.getUserInfoFromToken(token).getUsername();
-        return userDetails.getUsername().equals(username);
     }
 
     /**

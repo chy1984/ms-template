@@ -54,9 +54,9 @@ public class SysResourceRespVo implements Serializable {
     private String resUrl;
 
     /**
-     * 资源请求方式：GET、POST、PUT、DELETE
+     * 资源请求方式：GET、POST、PUT、PATCH、DELETE
      */
-    @ApiModelProperty(value = "资源请求方式：GET、POST、PUT、DELETE")
+    @ApiModelProperty(value = "资源请求方式：GET、POST、PUT、PATCH、DELETE")
     private String resReqMethod;
 
     /**

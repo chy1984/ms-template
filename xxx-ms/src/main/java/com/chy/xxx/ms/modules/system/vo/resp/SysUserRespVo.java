@@ -8,10 +8,9 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
-import java.util.List;
 
 /**
- * 系统用户信息
+ * 系统用户响应信息
  *
  * @author chy
  */
@@ -19,7 +18,7 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@ApiModel("系统用户信息")
+@ApiModel("系统用户响应信息")
 public class SysUserRespVo implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -59,11 +58,5 @@ public class SysUserRespVo implements Serializable {
      */
     @ApiModelProperty(value = "状态：0正常，1禁用")
     private Integer status;
-
-    /**
-     * 角色id列表
-     */
-    @ApiModelProperty(value = "角色id列表")
-    private List<Long> roleIds;
 
 }

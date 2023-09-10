@@ -37,6 +37,12 @@
             <if test="resType!=null">
                 and res_type = #{resType}
             </if>
+            <if test="resTypes!=null and resTypes.size()>0">
+                and res_type in
+                <foreach collection="resTypes" item="resType" open="(" close=")" separator=",">
+                    #{resType}
+                </foreach>
+            </if>
             <if test="resUrl!=null and resUrl!=''">
                 and res_url = #{resUrl}
             </if>

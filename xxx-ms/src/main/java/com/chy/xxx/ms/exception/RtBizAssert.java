@@ -147,4 +147,7 @@ public class RtBizAssert {
         }
     }
 
+    private RtBizAssert() {
+    }
+
 }

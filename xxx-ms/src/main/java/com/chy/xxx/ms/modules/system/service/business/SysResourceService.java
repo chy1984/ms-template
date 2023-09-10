@@ -1,6 +1,7 @@
 package com.chy.xxx.ms.modules.system.service.business;
 
 import com.chy.xxx.ms.modules.system.vo.req.SysResourceAddReqVo;
+import com.chy.xxx.ms.modules.system.vo.req.SysResourceListReqVo;
 import com.chy.xxx.ms.modules.system.vo.req.SysResourceUpdateReqVo;
 import com.chy.xxx.ms.modules.system.vo.resp.SysResourceRespVo;
 import com.chy.xxx.ms.response.CommonResp;
@@ -39,10 +40,11 @@ public interface SysResourceService {
     CommonResp<Void> delete(Long id);
 
     /**
-     * 查询全部系统资源
+     * 查询系统资源
      *
+     * @param reqVo 请求参数
      * @return CommonResp<List<SysResourceRespVo>>
      */
-    CommonResp<List<SysResourceRespVo>> getAll();
+    CommonResp<List<SysResourceRespVo>> list(SysResourceListReqVo reqVo);
 
 }

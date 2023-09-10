@@ -3,6 +3,7 @@ package com.chy.xxx.ms.modules.system.controller;
 import com.chy.xxx.ms.aop.operationlog.OperationLog;
 import com.chy.xxx.ms.modules.system.service.business.SysResourceService;
 import com.chy.xxx.ms.modules.system.vo.req.SysResourceAddReqVo;
+import com.chy.xxx.ms.modules.system.vo.req.SysResourceListReqVo;
 import com.chy.xxx.ms.modules.system.vo.req.SysResourceUpdateReqVo;
 import com.chy.xxx.ms.modules.system.vo.resp.SysResourceRespVo;
 import com.chy.xxx.ms.response.CommonResp;
@@ -57,12 +58,12 @@ public class SysResourceController {
         return sysResourceService.delete(id);
     }
 
-    @ApiOperation("查询全部系统资源")
+    @ApiOperation("查询系统资源")
     @ApiOperationSupport(author = "chy chy@qq.com")
-    @GetMapping("/v1/system/resources/all")
-    @OperationLog(value = "查询全部系统资源", saveRespData = false)
-    public CommonResp<List<SysResourceRespVo>> getAll() {
-        return sysResourceService.getAll();
+    @GetMapping("/v1/system/resources/list")
+    @OperationLog(value = "查询系统资源", saveRespData = false)
+    public CommonResp<List<SysResourceRespVo>> list(@Valid SysResourceListReqVo reqVo) {
+        return sysResourceService.list(reqVo);
     }
 
 }

@@ -5,6 +5,7 @@ import com.chy.xxx.ms.modules.system.qo.SysUserQo;
 import com.chy.xxx.ms.modules.system.vo.req.SysUserAddReqVo;
 import com.chy.xxx.ms.modules.system.vo.req.SysUserPageReqVo;
 import com.chy.xxx.ms.modules.system.vo.req.SysUserUpdateReqVo;
+import com.chy.xxx.ms.modules.system.vo.resp.SysUserPageRespVo;
 import com.chy.xxx.ms.modules.system.vo.resp.SysUserRespVo;
 import org.mapstruct.Mapper;
 
@@ -25,6 +26,8 @@ public interface SysUserMapper {
     SysUserPo updateReqVoToPo(SysUserUpdateReqVo reqVo);
 
     SysUserQo pageReqVoToQo(SysUserPageReqVo reqVo);
+
+    List<SysUserPageRespVo> posToPageRespVos(List<SysUserPo> pos);
 
     List<SysUserRespVo> posToRespVos(List<SysUserPo> pos);
 

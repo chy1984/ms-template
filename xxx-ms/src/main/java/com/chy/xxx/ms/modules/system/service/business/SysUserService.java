@@ -3,7 +3,7 @@ package com.chy.xxx.ms.modules.system.service.business;
 import com.chy.xxx.ms.modules.system.vo.req.*;
 import com.chy.xxx.ms.modules.system.vo.resp.SysUserDetailRespVo;
 import com.chy.xxx.ms.modules.system.vo.resp.SysUserLoginRespVo;
-import com.chy.xxx.ms.modules.system.vo.resp.SysUserRespVo;
+import com.chy.xxx.ms.modules.system.vo.resp.SysUserPageRespVo;
 import com.chy.xxx.ms.response.CommonPage;
 import com.chy.xxx.ms.response.CommonResp;
 
@@ -55,12 +55,20 @@ public interface SysUserService {
     CommonResp<Void> update(SysUserUpdateReqVo reqVo);
 
     /**
+     * 删除系统用户
+     *
+     * @param id 主键id
+     * @return CommonResp<Void>
+     */
+    CommonResp<Void> delete(Long id);
+
+    /**
      * 分页查询系统用户信息
      *
      * @param reqVo 请求参数
      * @return CommonResp<CommonPage<SysUserRespVo>>
      */
-    CommonResp<CommonPage<SysUserRespVo>> page(SysUserPageReqVo reqVo);
+    CommonResp<CommonPage<SysUserPageRespVo>> page(SysUserPageReqVo reqVo);
 
     /**
      * 充值用户密码

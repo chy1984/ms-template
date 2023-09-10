@@ -3,6 +3,8 @@ package com.chy.xxx.ms.modules.system.qo;
 import lombok.Builder;
 import lombok.Data;
 
+import java.util.List;
+
 /**
  * 系统用户Qo
  *
@@ -16,6 +18,11 @@ public class SysUserQo {
      * 主键id
      */
     private Long id;
+
+    /**
+     * 主键id列表
+     */
+    private List<Long> ids;
 
     /**
      * 用户名

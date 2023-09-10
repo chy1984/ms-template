@@ -1,12 +1,16 @@
 package com.chy.xxx.ms.modules.system.service.business.impl;
 
 import com.chy.xxx.ms.enums.ErrorCodeEnum;
+import com.chy.xxx.ms.exception.RtBizAssert;
+import com.chy.xxx.ms.modules.system.enums.SysResourceTypeEnum;
 import com.chy.xxx.ms.modules.system.mapper.SysResourceMapper;
 import com.chy.xxx.ms.modules.system.po.SysResourcePo;
 import com.chy.xxx.ms.modules.system.qo.SysResourceQo;
 import com.chy.xxx.ms.modules.system.service.business.SysResourceService;
 import com.chy.xxx.ms.modules.system.service.db.SysResourceDbService;
+import com.chy.xxx.ms.modules.system.service.tx.SysResourceTxService;
 import com.chy.xxx.ms.modules.system.vo.req.SysResourceAddReqVo;
+import com.chy.xxx.ms.modules.system.vo.req.SysResourceListReqVo;
 import com.chy.xxx.ms.modules.system.vo.req.SysResourceUpdateReqVo;
 import com.chy.xxx.ms.modules.system.vo.resp.SysResourceRespVo;
 import com.chy.xxx.ms.response.CommonResp;
@@ -28,6 +32,8 @@ public class SysResourceServiceImpl implements SysResourceService {
     @Resource
     private SysResourceDbService sysResourceDbService;
     @Resource
+    private SysResourceTxService sysResourceTxService;
+    @Resource
     private SysResourceMapper sysResourceMapper;
 
     @Override
@@ -39,6 +45,9 @@ public class SysResourceServiceImpl implements SysResourceService {
         if (CollectionUtils.isNotEmpty(sysResourcePos)) {
             return CommonResp.fail(ErrorCodeEnum.RESOURCE_REQ_METHOD_AND_URL_ALREADY_EXIST);
         }
+
+        //校验父子资源类型关联
+        validateParentResMapping(reqVo.getResType(), reqVo.getParentId());
 
         SysResourcePo sysResourcePo = sysResourceMapper.addReqVoToPo(reqVo);
         sysResourceDbService.save(sysResourcePo);
@@ -52,6 +61,9 @@ public class SysResourceServiceImpl implements SysResourceService {
             return CommonResp.fail(ErrorCodeEnum.SYS_RESOURCE_NOT_EXIST);
         }
 
+        //校验父子资源类型关联
+        validateParentResMapping(reqVo.getResType(), reqVo.getParentId());
+
         sysResourcePo = sysResourceMapper.updateReqVoToPo(reqVo);
         sysResourceDbService.updateById(sysResourcePo);
         return CommonResp.success();
@@ -59,15 +71,39 @@ public class SysResourceServiceImpl implements SysResourceService {
 
     @Override
     public CommonResp<Void> delete(Long id) {
-        sysResourceDbService.removeById(id);
+        SysResourcePo sysResourcePo = sysResourceDbService.getById(id);
+        if (sysResourcePo == null) {
+            return CommonResp.fail(ErrorCodeEnum.SYS_RESOURCE_NOT_EXIST);
+        }
+        //有子资源时不能删除
+        List<SysResourcePo> subResourcePos = sysResourceDbService.listByQo(SysResourceQo.builder()
+                .parentId(id)
+                .build());
+        if (CollectionUtils.isNotEmpty(subResourcePos)) {
+            return CommonResp.fail(ErrorCodeEnum.CANNOT_DELETE_RESOURCE_WITH_SUB_RESOURCES);
+        }
+
+        sysResourceTxService.deleteResource(id);
         return CommonResp.success();
     }
 
     @Override
-    public CommonResp<List<SysResourceRespVo>> getAll() {
-        List<SysResourcePo> sysResourcePos = sysResourceDbService.list();
+    public CommonResp<List<SysResourceRespVo>> list(SysResourceListReqVo reqVo) {
+        SysResourceQo sysResourceQo = sysResourceMapper.listReqVoToQo(reqVo);
+        List<SysResourcePo> sysResourcePos = sysResourceDbService.listByQo(sysResourceQo);
         List<SysResourceRespVo> resourceRespVos = sysResourceMapper.posToRespVos(sysResourcePos);
         return CommonResp.success(resourceRespVos);
+    }
+
+    private void validateParentResMapping(Integer resType, Long parentResId) {
+        Integer parentResType = null;
+        if (parentResId != null) {
+            SysResourcePo parentResourcePo = sysResourceDbService.getById(parentResId);
+            parentResType = parentResourcePo.getResType();
+        }
+        boolean validateParentResMapping = SysResourceTypeEnum.validateParentResMapping(resType, parentResType);
+        RtBizAssert.assertTrue(validateParentResMapping, ErrorCodeEnum.PARENT_RESOURCE_MAPPING_ERROR,
+                String.format("resType=%s,parentResType=%s", resType, parentResType));
     }
 
 }

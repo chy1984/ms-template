@@ -55,6 +55,12 @@ public class SysUserPageReqVo implements Serializable {
     private Integer status;
 
     /**
+     * 角色id
+     */
+    @ApiModelProperty(value = "角色id")
+    private Long roleId;
+
+    /**
      * 当前页码
      */
     @NotNull(message = "当前页码不能为空")

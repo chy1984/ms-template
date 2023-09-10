@@ -5,7 +5,7 @@ import com.chy.xxx.ms.modules.system.service.business.SysUserService;
 import com.chy.xxx.ms.modules.system.vo.req.*;
 import com.chy.xxx.ms.modules.system.vo.resp.SysUserDetailRespVo;
 import com.chy.xxx.ms.modules.system.vo.resp.SysUserLoginRespVo;
-import com.chy.xxx.ms.modules.system.vo.resp.SysUserRespVo;
+import com.chy.xxx.ms.modules.system.vo.resp.SysUserPageRespVo;
 import com.chy.xxx.ms.request.RequestContextHolder;
 import com.chy.xxx.ms.response.CommonPage;
 import com.chy.xxx.ms.response.CommonResp;
@@ -45,11 +45,19 @@ public class SysUserController {
         return sysUserService.update(reqVo);
     }
 
+    @ApiOperation("删除系统用户")
+    @ApiOperationSupport(author = "chy chy@qq.com")
+    @DeleteMapping("/v1/system/users/{id}")
+    @OperationLog("删除系统用户")
+    public CommonResp<Void> delete(@PathVariable("id") Long id) {
+        return sysUserService.delete(id);
+    }
+
     @ApiOperation("分页查询系统用户")
     @ApiOperationSupport(author = "chy chy@qq.com")
     @GetMapping("/v1/system/users/page")
     @OperationLog("分页查询系统用户")
-    public CommonResp<CommonPage<SysUserRespVo>> page(@Valid SysUserPageReqVo reqVo) {
+    public CommonResp<CommonPage<SysUserPageRespVo>> page(@Valid SysUserPageReqVo reqVo) {
         return sysUserService.page(reqVo);
     }
 

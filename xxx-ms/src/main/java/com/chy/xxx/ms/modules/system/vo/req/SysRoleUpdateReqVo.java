@@ -32,6 +32,12 @@ public class SysRoleUpdateReqVo implements Serializable {
     private Long id;
 
     /**
+     * 角色名称
+     */
+    @ApiModelProperty(value = "角色名称")
+    private String roleName;
+
+    /**
      * 角色状态：0正常，1禁用
      */
     @NotNull(message = "角色状态不能为空")

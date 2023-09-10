@@ -51,7 +51,7 @@ public class SysUserResourceCacheService {
             return SysUserResourceBo.buildUserNotExist(username);
         }
 
-        //查询关联的角色
+        //查询用户-角色关联关系
         SysUserPo sysUserPo = sysUserPos.get(0);
         List<SysUserRolePo> sysUserRolePos = sysUserRoleDbService.listByQo(SysUserRoleQo.builder()
                 .userId(sysUserPo.getId())
@@ -61,7 +61,7 @@ public class SysUserResourceCacheService {
             return SysUserResourceBo.buildUserNoResources(sysUserPo);
         }
 
-        //过滤出有效的角色
+        //查询拥有的、有效的角色
         List<Long> roleIds = sysUserRolePos.stream()
                 .map(SysUserRolePo::getRoleId)
                 .collect(Collectors.toList());
@@ -77,7 +77,7 @@ public class SysUserResourceCacheService {
             return SysUserResourceBo.buildUserNoResources(sysUserPo);
         }
 
-        //查询关联的资源
+        //查询角色-资源关联关系
         List<SysRoleResourcePo> sysRoleResourcePos = sysRoleResourceDbService.listByQo(SysRoleResourceQo.builder()
                 .roleIds(roleIds)
                 .build());
@@ -86,9 +86,10 @@ public class SysUserResourceCacheService {
             return SysUserResourceBo.buildUserNoResources(sysUserPo);
         }
 
-        //过滤出有效的资源
+        //查询拥有的、有效的资源
         List<Long> resIds = sysRoleResourcePos.stream()
                 .map(SysRoleResourcePo::getResId)
+                .distinct()
                 .collect(Collectors.toList());
         List<SysResourcePo> sysResourcePos = sysResourceDbService.listByQo(SysResourceQo.builder()
                 .ids(resIds)
@@ -99,7 +100,8 @@ public class SysUserResourceCacheService {
         }
 
         //处理结果
-        Map<Integer, List<SysResourcePo>> resTypeMap = sysResourcePos.stream().collect(Collectors.groupingBy(SysResourcePo::getResType));
+        Map<Integer, List<SysResourcePo>> resTypeMap = sysResourcePos.stream()
+                .collect(Collectors.groupingBy(SysResourcePo::getResType));
         return SysUserResourceBo.buildUserWithResources(sysUserPo, resTypeMap);
     }
 
