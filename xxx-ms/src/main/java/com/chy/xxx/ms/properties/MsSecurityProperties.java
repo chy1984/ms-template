@@ -4,7 +4,6 @@ import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -20,6 +19,6 @@ public class MsSecurityProperties {
     /**
      * 白名单url，直接放行
      */
-    private List<String> ignoreUrls = new ArrayList<>();
+    private List<String> ignoreUrls;
 
 }

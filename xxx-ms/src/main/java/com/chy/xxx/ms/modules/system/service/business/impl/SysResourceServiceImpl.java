@@ -1,6 +1,6 @@
 package com.chy.xxx.ms.modules.system.service.business.impl;
 
-import com.chy.xxx.ms.enums.ErrorCodeEnum;
+import com.chy.xxx.ms.enums.MsErrorCodeEnum;
 import com.chy.xxx.ms.exception.RtBizAssert;
 import com.chy.xxx.ms.modules.system.enums.SysResourceTypeEnum;
 import com.chy.xxx.ms.modules.system.mapper.SysResourceMapper;
@@ -43,7 +43,7 @@ public class SysResourceServiceImpl implements SysResourceService {
                 .resUrl(reqVo.getResUrl())
                 .build());
         if (CollectionUtils.isNotEmpty(sysResourcePos)) {
-            return CommonResp.fail(ErrorCodeEnum.RESOURCE_REQ_METHOD_AND_URL_ALREADY_EXIST);
+            return CommonResp.fail(MsErrorCodeEnum.RESOURCE_REQ_METHOD_AND_URL_ALREADY_EXIST);
         }
 
         //校验父子资源类型关联
@@ -58,7 +58,7 @@ public class SysResourceServiceImpl implements SysResourceService {
     public CommonResp<Void> update(SysResourceUpdateReqVo reqVo) {
         SysResourcePo sysResourcePo = sysResourceDbService.getById(reqVo.getId());
         if (sysResourcePo == null) {
-            return CommonResp.fail(ErrorCodeEnum.SYS_RESOURCE_NOT_EXIST);
+            return CommonResp.fail(MsErrorCodeEnum.SYS_RESOURCE_NOT_EXIST);
         }
 
         //校验父子资源类型关联
@@ -73,14 +73,14 @@ public class SysResourceServiceImpl implements SysResourceService {
     public CommonResp<Void> delete(Long id) {
         SysResourcePo sysResourcePo = sysResourceDbService.getById(id);
         if (sysResourcePo == null) {
-            return CommonResp.fail(ErrorCodeEnum.SYS_RESOURCE_NOT_EXIST);
+            return CommonResp.fail(MsErrorCodeEnum.SYS_RESOURCE_NOT_EXIST);
         }
         //有子资源时不能删除
         List<SysResourcePo> subResourcePos = sysResourceDbService.listByQo(SysResourceQo.builder()
                 .parentId(id)
                 .build());
         if (CollectionUtils.isNotEmpty(subResourcePos)) {
-            return CommonResp.fail(ErrorCodeEnum.CANNOT_DELETE_RESOURCE_WITH_SUB_RESOURCES);
+            return CommonResp.fail(MsErrorCodeEnum.CANNOT_DELETE_RESOURCE_WITH_SUB_RESOURCES);
         }
 
         sysResourceTxService.deleteResource(id);
@@ -102,7 +102,7 @@ public class SysResourceServiceImpl implements SysResourceService {
             parentResType = parentResourcePo.getResType();
         }
         boolean validateParentResMapping = SysResourceTypeEnum.validateParentResMapping(resType, parentResType);
-        RtBizAssert.assertTrue(validateParentResMapping, ErrorCodeEnum.PARENT_RESOURCE_MAPPING_ERROR,
+        RtBizAssert.assertTrue(validateParentResMapping, MsErrorCodeEnum.PARENT_RESOURCE_MAPPING_ERROR,
                 String.format("resType=%s,parentResType=%s", resType, parentResType));
     }
 

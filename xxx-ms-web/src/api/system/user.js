@@ -16,6 +16,13 @@ export function getUserDetail() {
   })
 }
 
+export function refreshToken() {
+  return request({
+    url: `/v1/system/users/refresh-token`,
+    method: 'get'
+  })
+}
+
 export function logout() {
   return request({
     url: '/v1/system/users/logout',

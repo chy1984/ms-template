@@ -39,4 +39,9 @@ public class JwtTokenProperties {
      */
     private Integer refreshBeforeExpire;
 
+    /**
+     * 通知前端刷新token的响应头字段
+     */
+    private String refreshResponseHeader;
+
 }

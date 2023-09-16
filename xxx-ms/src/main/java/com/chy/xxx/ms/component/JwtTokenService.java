@@ -1,7 +1,5 @@
 package com.chy.xxx.ms.component;
 
-import com.chy.xxx.ms.enums.ErrorCodeEnum;
-import com.chy.xxx.ms.exception.ServiceRuntimeException;
 import com.chy.xxx.ms.modules.system.po.SysUserPo;
 import com.chy.xxx.ms.properties.JwtTokenProperties;
 import io.jsonwebtoken.Claims;
@@ -10,9 +8,11 @@ import io.jsonwebtoken.SignatureAlgorithm;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -43,6 +43,21 @@ public class JwtTokenService {
      * claims中的创建时间字段
      */
     private static final String CLAIM_KEY_CREATE_TIME = "created";
+
+    /**
+     * 从请求中获取token
+     *
+     * @param request http请求
+     * @return String
+     */
+    public String getToken(HttpServletRequest request) {
+        String tokenHeaderValue = request.getHeader(jwtTokenProperties.getRequestHeader());
+        if (StringUtils.isBlank(tokenHeaderValue) || !tokenHeaderValue.startsWith(jwtTokenProperties.getPrefix())) {
+            return null;
+        }
+        return tokenHeaderValue.substring(jwtTokenProperties.getPrefix().length());
+    }
+
 
     /**
      * 从token中获取用户信息
@@ -79,19 +94,24 @@ public class JwtTokenService {
      * @return String
      */
     public String refreshToken(String token) {
-        if (StringUtils.isBlank(token)) {
-            return null;
+        Pair<Boolean, Claims> pair = this.needRefreshToken(token);
+        //需要时才刷新，否则继续使用当前token
+        if (Boolean.TRUE.equals(pair.getLeft())) {
+            Claims claims = pair.getRight();
+            claims.put(CLAIM_KEY_CREATE_TIME, new Date());
+            return this.generateToken(claims);
         }
-        //此处未抛出异常，说明必然在token有效期内
+        return token;
+    }
+
+    public Pair<Boolean, Claims> needRefreshToken(String token) {
         Claims claims = this.getClaimsFromToken(token);
-        //达到刷新时间范围内时才刷新token，否则继续使用当前token
-        Date thresholdTime = DateUtils.addSeconds(claims.getExpiration(), -jwtTokenProperties.getRefreshBeforeExpire());
-        Date nowTime = new Date();
-        if (nowTime.after(thresholdTime)) {
-            return token;
-        }
-        claims.put(CLAIM_KEY_CREATE_TIME, nowTime);
-        return this.generateToken(claims);
+        Date expiration = claims.getExpiration();
+        //即将过期时才刷新token
+        Date thresholdTime = DateUtils.addSeconds(expiration, -jwtTokenProperties.getRefreshBeforeExpire());
+        Date now = new Date();
+        boolean needRefreshToken = now.after(thresholdTime) && now.before(expiration);
+        return Pair.of(needRefreshToken, claims);
     }
 
     private String generateToken(Map<String, Object> claims) {
@@ -104,15 +124,11 @@ public class JwtTokenService {
     }
 
     private Claims getClaimsFromToken(String token) {
-        try {
-            return Jwts.parser()
-                    .setSigningKey(jwtTokenProperties.getSecret())
-                    .parseClaimsJws(token)
-                    .getBody();
-        } catch (Exception e) {
-            //token格式错误、信息错误、已过期均抛出异常
-            throw new ServiceRuntimeException(ErrorCodeEnum.UNAUTHORIZED, e);
-        }
+        return Jwts.parser()
+                .setSigningKey(jwtTokenProperties.getSecret())
+                //此处可能会抛出异常：token不合法、已过期
+                .parseClaimsJws(token)
+                .getBody();
     }
 
 }

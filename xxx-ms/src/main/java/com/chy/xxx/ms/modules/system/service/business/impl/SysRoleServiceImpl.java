@@ -1,6 +1,6 @@
 package com.chy.xxx.ms.modules.system.service.business.impl;
 
-import com.chy.xxx.ms.enums.ErrorCodeEnum;
+import com.chy.xxx.ms.enums.MsErrorCodeEnum;
 import com.chy.xxx.ms.modules.system.enums.SysResourceTypeEnum;
 import com.chy.xxx.ms.modules.system.mapper.SysResourceMapper;
 import com.chy.xxx.ms.modules.system.mapper.SysRoleMapper;
@@ -64,7 +64,7 @@ public class SysRoleServiceImpl implements SysRoleService {
                 .roleName(reqVo.getRoleName())
                 .build());
         if (CollectionUtils.isNotEmpty(sysRolePos)) {
-            return CommonResp.fail(ErrorCodeEnum.ROLE_NAME_ALREADY_EXIST);
+            return CommonResp.fail(MsErrorCodeEnum.ROLE_NAME_ALREADY_EXIST);
         }
 
         SysRolePo sysRolePo = sysRoleMapper.addReqVoToPo(reqVo);
@@ -76,7 +76,7 @@ public class SysRoleServiceImpl implements SysRoleService {
     public CommonResp<Void> update(SysRoleUpdateReqVo reqVo) {
         SysRolePo sysRolePo = sysRoleDbService.getById(reqVo.getId());
         if (sysRolePo == null) {
-            CommonResp.fail(ErrorCodeEnum.SYS_ROLE_NOT_EXIST);
+            CommonResp.fail(MsErrorCodeEnum.SYS_ROLE_NOT_EXIST);
         }
 
         sysRolePo = sysRoleMapper.updateReqVoToPo(reqVo);
@@ -88,7 +88,7 @@ public class SysRoleServiceImpl implements SysRoleService {
     public CommonResp<Void> delete(Long id) {
         SysRolePo sysRolePo = sysRoleDbService.getById(id);
         if (sysRolePo == null) {
-            return CommonResp.fail(ErrorCodeEnum.SYS_ROLE_NOT_EXIST);
+            return CommonResp.fail(MsErrorCodeEnum.SYS_ROLE_NOT_EXIST);
         }
         sysRoleTxService.deleteRole(id);
         return CommonResp.success();

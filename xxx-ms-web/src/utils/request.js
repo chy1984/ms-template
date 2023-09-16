@@ -14,10 +14,9 @@ const service = axios.create({
 service.interceptors.request.use(
   config => {
     // do something before request is sent
-
+    // 如果有token，则在请求头中携带token
     if (store.getters.token) {
-      // 请求头携带token
-      config.headers['Authorization'] = 'Bearer ' + getToken()
+      config.headers['Authorization'] = store.getters.tokenPrefix + getToken()
     }
     return config
   },
@@ -41,19 +40,29 @@ service.interceptors.response.use(
    * You can also judge the status by HTTP Status Code
    */
   response => {
+    console.log(response.headers['refresh-token'])
+
+    // 服务端提示token即将过期，则异步刷新token
+    if (response.headers['refresh-token'] && !store.getters.refreshingToken) {
+      store.dispatch('user/refreshToken').then(() => {
+        console.log('已刷新token')
+      })
+    }
+
+    // 成功则返回响应数据
     const res = response.data
-    // 操作成功
     if (res.code === '000000') {
       return res
     }
 
+    // 失败则展示错误提示
     Message({
-      message: res.message || 'Error',
+      message: res.message || '系统繁忙，请稍后再试',
       type: 'error',
       duration: 5 * 1000
     })
 
-    // 未登录、token不合法、token已过期
+    // 未登录、token不合法、token已过期，则弹框引导重新登录
     if (res.code === '900001') {
       MessageBox.confirm('你已被退出, 是否重新登录', '操作提示', {
         confirmButtonText: '重新登录',
@@ -66,7 +75,7 @@ service.interceptors.response.use(
       })
     }
 
-    return Promise.reject(new Error(res.message || 'Error'))
+    return Promise.reject(new Error(res.message || '系统繁忙，请稍后再试'))
   },
   error => {
     console.log('err' + error) // for debug

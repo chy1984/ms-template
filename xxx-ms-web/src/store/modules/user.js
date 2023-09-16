@@ -1,4 +1,4 @@
-import { login, logout, getUserDetail, updatePassword } from '@/api/system/user'
+import { login, logout, getUserDetail, updatePassword, refreshToken } from '@/api/system/user'
 import { getToken, setToken, removeToken } from '@/utils/auth'
 import router, { resetRouter } from '@/router'
 import store from '@/store'
@@ -8,6 +8,8 @@ import NProgress from 'nprogress'
 const getDefaultState = () => {
   return {
     token: getToken(),
+    tokenPrefix: '',
+    refreshingToken: false,
     username: '',
     realName: '',
     menuList: [],
@@ -24,6 +26,12 @@ const mutations = {
   SET_TOKEN: (state, token) => {
     state.token = token
   },
+  SET_TOKEN_PREFIX: (state, tokenPrefix) => {
+    state.tokenPrefix = tokenPrefix
+  },
+  SET_REFRESHING_TOKEN: (state, refreshingToken) => {
+    state.refreshingToken = refreshingToken
+  },
   SET_USERNAME: (state, username) => {
     state.username = username
   },
@@ -39,13 +47,14 @@ const mutations = {
 }
 
 const actions = {
-  // user login
+  // 登录
   login({ commit }, userInfo) {
     const { username, password } = userInfo
     return new Promise((resolve, reject) => {
       login({ username: username.trim(), password: password }).then(response => {
         const { data } = response
         commit('SET_TOKEN', data.token)
+        commit('SET_TOKEN_PREFIX', data.tokenPrefix)
         setToken(data.token)
         resolve()
       }).catch(error => {
@@ -54,18 +63,16 @@ const actions = {
     })
   },
 
-  // get user info
+  // 登录后获取当前用户信息
   getDetail({ commit, state }) {
     return new Promise((resolve, reject) => {
       getUserDetail().then(response => {
         const { data } = response
-
         if (!data) {
           reject('验证失败，请重新登录')
         }
 
         const { username, realName, menuList, operationList } = data
-
         commit('SET_USERNAME', username)
         commit('SET_REAL_NAME', realName)
         commit('SET_MENU_LIST', menuList)
@@ -73,6 +80,23 @@ const actions = {
         resolve(data)
       }).catch(error => {
         reject(error)
+      })
+    })
+  },
+
+  async refreshToken({ commit }) {
+    commit('SET_REFRESHING_TOKEN', true)
+    return new Promise((resolve, reject) => {
+      refreshToken().then(response => {
+        const { data } = response
+        commit('SET_TOKEN', data.token)
+        commit('SET_TOKEN_PREFIX', data.tokenPrefix)
+        setToken(data.token)
+        resolve()
+      }).catch(error => {
+        reject(error)
+      }).finally(() => {
+        commit('SET_REFRESHING_TOKEN', false)
       })
     })
   },
@@ -91,7 +115,7 @@ const actions = {
     })
   },
 
-  // user logout
+  // 登出
   logout({ commit }) {
     return new Promise((resolve, reject) => {
       logout().then(() => {

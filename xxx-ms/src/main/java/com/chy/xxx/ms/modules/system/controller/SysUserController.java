@@ -1,11 +1,12 @@
 package com.chy.xxx.ms.modules.system.controller;
 
 import com.chy.xxx.ms.aop.operationlog.OperationLog;
+import com.chy.xxx.ms.component.JwtTokenService;
 import com.chy.xxx.ms.modules.system.service.business.SysUserService;
 import com.chy.xxx.ms.modules.system.vo.req.*;
 import com.chy.xxx.ms.modules.system.vo.resp.SysUserDetailRespVo;
-import com.chy.xxx.ms.modules.system.vo.resp.SysUserLoginRespVo;
 import com.chy.xxx.ms.modules.system.vo.resp.SysUserPageRespVo;
+import com.chy.xxx.ms.modules.system.vo.resp.SysUserTokenRespVo;
 import com.chy.xxx.ms.request.RequestContextHolder;
 import com.chy.xxx.ms.response.CommonPage;
 import com.chy.xxx.ms.response.CommonResp;
@@ -15,6 +16,7 @@ import io.swagger.annotations.ApiOperation;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 
 /**
@@ -28,6 +30,8 @@ public class SysUserController {
 
     @Resource
     private SysUserService sysUserService;
+    @Resource
+    private JwtTokenService jwtTokenService;
 
     @ApiOperation("添加系统用户")
     @ApiOperationSupport(author = "chy chy@qq.com")
@@ -61,11 +65,19 @@ public class SysUserController {
         return sysUserService.page(reqVo);
     }
 
+    @ApiOperation("重置系统用户密码")
+    @ApiOperationSupport(author = "chy chy@qq.com")
+    @PutMapping("/v1/system/users/{id}/password/reset")
+    @OperationLog("重置系统用户密码")
+    public CommonResp<Void> resetPassword(@PathVariable("id") Long id) {
+        return sysUserService.resetPassword(id);
+    }
+
     @ApiOperation("登录")
     @ApiOperationSupport(author = "chy chy@qq.com")
     @PostMapping("/v1/system/users/login")
     @OperationLog("登录")
-    public CommonResp<SysUserLoginRespVo> login(@Valid @RequestBody SysUserLoginReqVo reqVo) {
+    public CommonResp<SysUserTokenRespVo> login(@Valid @RequestBody SysUserLoginReqVo reqVo) {
         return sysUserService.login(reqVo);
     }
 
@@ -87,20 +99,21 @@ public class SysUserController {
         return sysUserService.getUserDetail(username);
     }
 
+    @ApiOperation("刷新当前用户token")
+    @ApiOperationSupport(author = "chy chy@qq.com")
+    @GetMapping("/v1/system/users/refresh-token")
+    @OperationLog(value = "刷新当前用户token")
+    public CommonResp<SysUserTokenRespVo> refreshToken(HttpServletRequest request) {
+        String token = jwtTokenService.getToken(request);
+        return sysUserService.refreshToken(token);
+    }
+
     @ApiOperation("修改当前用户密码")
     @ApiOperationSupport(author = "chy chy@qq.com")
     @PutMapping("/v1/system/users/password")
     @OperationLog("修改当前用户密码")
     public CommonResp<Void> updatePassword(@Valid @RequestBody SysUserUpdatePasswordReqVo reqVo) {
         return sysUserService.updatePassword(reqVo);
-    }
-
-    @ApiOperation("重置系统用户密码")
-    @ApiOperationSupport(author = "chy chy@qq.com")
-    @PutMapping("/v1/system/users/{id}/password/reset")
-    @OperationLog("重置系统用户密码")
-    public CommonResp<Void> resetPassword(@PathVariable("id") Long id) {
-        return sysUserService.resetPassword(id);
     }
 
 }

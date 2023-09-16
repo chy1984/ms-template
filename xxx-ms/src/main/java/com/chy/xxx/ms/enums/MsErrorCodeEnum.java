@@ -7,7 +7,7 @@ import lombok.Getter;
 import lombok.ToString;
 
 /**
- * 错误码枚举<br/>
+ * 后台错误码枚举<br/>
  * 以前2位区分业务模块，保留0、9开头的作为项目通用错误码，0成功，9失败
  *
  * @author chy
@@ -15,7 +15,7 @@ import lombok.ToString;
 @Getter
 @ToString
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
-public enum ErrorCodeEnum implements IErrorCode {
+public enum MsErrorCodeEnum implements IErrorCode {
 
     /************************** 通用错误码，成功以0开头，失败以9开头 ************************/
     SUCCESS("000000", "操作成功"),

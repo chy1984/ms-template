@@ -301,7 +301,7 @@ export default {
       this.resetSaveRoleResourceForm()
       this.saveRoleResourceForm.roleId = row.id
       this.roleResourceQuery.roleId = row.id
-      console.log(this.resourceQuery)
+
       // 加载资源列表
       listResource(this.resourceQuery).then(response => {
         this.resourceTree = buildResourceTree(response.data)

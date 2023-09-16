@@ -1,6 +1,6 @@
 package com.chy.xxx.ms.response;
 
-import com.chy.xxx.ms.enums.ErrorCodeEnum;
+import com.chy.xxx.ms.enums.MsErrorCodeEnum;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.AccessLevel;
@@ -50,38 +50,38 @@ public class CommonResp<T> implements Serializable {
     }
 
     public static <T> CommonResp<T> success(T data) {
-        return fail(ErrorCodeEnum.SUCCESS, data);
+        return fail(MsErrorCodeEnum.SUCCESS, data);
     }
 
     public static CommonResp<Void> success() {
-        return fail(ErrorCodeEnum.SUCCESS);
+        return fail(MsErrorCodeEnum.SUCCESS);
     }
 
     /**
      * 如果是后台之类内部人员使用的系统，可以适当返回具体错误信息
      */
     public static CommonResp<String> paramError(String detailMessage) {
-        return fail(ErrorCodeEnum.PARAM_ERROR, detailMessage);
+        return fail(MsErrorCodeEnum.PARAM_ERROR, detailMessage);
     }
 
     public static CommonResp<Void> paramError() {
-        return fail(ErrorCodeEnum.PARAM_ERROR);
+        return fail(MsErrorCodeEnum.PARAM_ERROR);
     }
 
     public static CommonResp<Void> unauthorized() {
-        return fail(ErrorCodeEnum.UNAUTHORIZED);
+        return fail(MsErrorCodeEnum.UNAUTHORIZED);
     }
 
     public static CommonResp<Void> forbidden() {
-        return fail(ErrorCodeEnum.FORBIDDEN);
+        return fail(MsErrorCodeEnum.FORBIDDEN);
     }
 
     public static <T> CommonResp<T> notImplemented() {
-        return fail(ErrorCodeEnum.NOT_IMPLEMENTED, null);
+        return fail(MsErrorCodeEnum.NOT_IMPLEMENTED, null);
     }
 
     public static CommonResp<Void> unknownError() {
-        return fail(ErrorCodeEnum.UNKNOWN_ERROR);
+        return fail(MsErrorCodeEnum.UNKNOWN_ERROR);
     }
 
 }

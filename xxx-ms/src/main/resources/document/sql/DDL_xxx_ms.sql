@@ -65,8 +65,7 @@ CREATE TABLE `t_sys_resource`
     `parent_id`      bigint(20)   NOT NULL DEFAULT 0 COMMENT '上级资源id',
     `create_time`    datetime     NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     `update_time`    datetime     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-    PRIMARY KEY (`id`),
-    UNIQUE KEY `uk_res_req_method_url` (`res_req_method`, `res_url`)
+    PRIMARY KEY (`id`)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4
   COLLATE = utf8mb4_general_ci COMMENT ='系统资源表';

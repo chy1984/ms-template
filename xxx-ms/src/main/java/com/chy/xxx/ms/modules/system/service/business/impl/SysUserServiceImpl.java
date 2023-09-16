@@ -1,7 +1,7 @@
 package com.chy.xxx.ms.modules.system.service.business.impl;
 
 import com.chy.xxx.ms.component.JwtTokenService;
-import com.chy.xxx.ms.enums.ErrorCodeEnum;
+import com.chy.xxx.ms.enums.MsErrorCodeEnum;
 import com.chy.xxx.ms.modules.system.bo.SysUserResourceBo;
 import com.chy.xxx.ms.modules.system.cache.SysUserResourceCacheService;
 import com.chy.xxx.ms.modules.system.enums.SysUserStatusEnum;
@@ -13,19 +13,15 @@ import com.chy.xxx.ms.modules.system.properties.SysUserProperties;
 import com.chy.xxx.ms.modules.system.qo.SysUserQo;
 import com.chy.xxx.ms.modules.system.qo.SysUserRoleQo;
 import com.chy.xxx.ms.modules.system.service.business.SysUserService;
-import com.chy.xxx.ms.modules.system.service.db.SysRoleDbService;
 import com.chy.xxx.ms.modules.system.service.db.SysUserDbService;
 import com.chy.xxx.ms.modules.system.service.db.SysUserRoleDbService;
 import com.chy.xxx.ms.modules.system.service.tx.SysUserTxService;
-import com.chy.xxx.ms.modules.system.vo.req.SysUserAddReqVo;
-import com.chy.xxx.ms.modules.system.vo.req.SysUserLoginReqVo;
-import com.chy.xxx.ms.modules.system.vo.req.SysUserPageReqVo;
-import com.chy.xxx.ms.modules.system.vo.req.SysUserUpdatePasswordReqVo;
-import com.chy.xxx.ms.modules.system.vo.req.SysUserUpdateReqVo;
+import com.chy.xxx.ms.modules.system.vo.req.*;
 import com.chy.xxx.ms.modules.system.vo.resp.SysResourceRespVo;
 import com.chy.xxx.ms.modules.system.vo.resp.SysUserDetailRespVo;
-import com.chy.xxx.ms.modules.system.vo.resp.SysUserLoginRespVo;
 import com.chy.xxx.ms.modules.system.vo.resp.SysUserPageRespVo;
+import com.chy.xxx.ms.modules.system.vo.resp.SysUserTokenRespVo;
+import com.chy.xxx.ms.properties.JwtTokenProperties;
 import com.chy.xxx.ms.request.RequestContextHolder;
 import com.chy.xxx.ms.response.CommonPage;
 import com.chy.xxx.ms.response.CommonResp;
@@ -41,9 +37,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import static java.util.stream.Collectors.groupingBy;
-import static java.util.stream.Collectors.mapping;
-import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.*;
 
 /**
  * 系统用户业务service实现
@@ -58,8 +52,6 @@ public class SysUserServiceImpl implements SysUserService {
     @Resource
     private SysUserRoleDbService sysUserRoleDbService;
     @Resource
-    private SysRoleDbService sysRoleDbService;
-    @Resource
     private SysUserTxService sysUserTxService;
     @Resource
     private SysUserResourceCacheService sysUserResourceCacheService;
@@ -68,6 +60,8 @@ public class SysUserServiceImpl implements SysUserService {
     @Resource
     private JwtTokenService jwtTokenService;
     @Resource
+    private JwtTokenProperties jwtTokenProperties;
+    @Resource
     private SysResourceMapper sysResourceMapper;
     @Resource
     private SysUserMapper sysUserMapper;
@@ -75,29 +69,30 @@ public class SysUserServiceImpl implements SysUserService {
     private SysUserProperties sysUserProperties;
 
     @Override
-    public CommonResp<SysUserLoginRespVo> login(SysUserLoginReqVo reqVo) {
+    public CommonResp<SysUserTokenRespVo> login(SysUserLoginReqVo reqVo) {
         String username = reqVo.getUsername();
         //密码需要客户端加密后传递
         List<SysUserPo> sysUserPos = sysUserDbService.listByQo(SysUserQo.builder()
                 .username(username)
                 .build());
         if (CollectionUtils.isEmpty(sysUserPos)) {
-            return CommonResp.fail(ErrorCodeEnum.SYS_USER_NOT_EXIST, null);
+            return CommonResp.fail(MsErrorCodeEnum.SYS_USER_NOT_EXIST, null);
         }
         SysUserPo sysUserPo = sysUserPos.get(0);
         if (!passwordEncoder.matches(reqVo.getPassword(), sysUserPo.getPassword())) {
-            return CommonResp.fail(ErrorCodeEnum.USERNAME_OR_PASSWORD_ERROR, null);
+            return CommonResp.fail(MsErrorCodeEnum.USERNAME_OR_PASSWORD_ERROR, null);
         }
         if (SysUserStatusEnum.DISABLED.getStatus().equals(sysUserPo.getStatus())) {
-            return CommonResp.fail(ErrorCodeEnum.SYS_USER_DISABLED, null);
+            return CommonResp.fail(MsErrorCodeEnum.SYS_USER_DISABLED, null);
         }
 
         //请求上下文回填用户信息
         RequestContextHolder.setUserInfo(sysUserPo.getUsername(), sysUserPo.getRealName());
 
         String token = jwtTokenService.generateToken(sysUserPo);
-        SysUserLoginRespVo respVo = SysUserLoginRespVo.builder()
+        SysUserTokenRespVo respVo = SysUserTokenRespVo.builder()
                 .token(token)
+                .tokenPrefix(jwtTokenProperties.getPrefix())
                 .build();
         return CommonResp.success(respVo);
     }
@@ -124,13 +119,23 @@ public class SysUserServiceImpl implements SysUserService {
     }
 
     @Override
+    public CommonResp<SysUserTokenRespVo> refreshToken(String token) {
+        token = jwtTokenService.refreshToken(token);
+        SysUserTokenRespVo sysUserTokenRespVo = SysUserTokenRespVo.builder()
+                .token(token)
+                .tokenPrefix(jwtTokenProperties.getPrefix())
+                .build();
+        return CommonResp.success(sysUserTokenRespVo);
+    }
+
+    @Override
     public CommonResp<Void> add(SysUserAddReqVo reqVo) {
         String username = reqVo.getUsername();
         List<SysUserPo> sysUserPos = sysUserDbService.listByQo(SysUserQo.builder()
                 .username(username)
                 .build());
         if (CollectionUtils.isNotEmpty(sysUserPos)) {
-            return CommonResp.fail(ErrorCodeEnum.USERNAME_ALREADY_EXIST);
+            return CommonResp.fail(MsErrorCodeEnum.USERNAME_ALREADY_EXIST);
         }
 
         SysUserPo sysUserPo = sysUserMapper.addReqVoToPo(reqVo);
@@ -151,7 +156,7 @@ public class SysUserServiceImpl implements SysUserService {
         Long userId = reqVo.getId();
         SysUserPo sysUserPo = sysUserDbService.getById(userId);
         if (sysUserPo == null) {
-            return CommonResp.fail(ErrorCodeEnum.SYS_USER_NOT_EXIST);
+            return CommonResp.fail(MsErrorCodeEnum.SYS_USER_NOT_EXIST);
         }
 
         SysUserPo sysUserUpdatePo = sysUserMapper.updateReqVoToPo(reqVo);
@@ -170,7 +175,7 @@ public class SysUserServiceImpl implements SysUserService {
     public CommonResp<Void> delete(Long id) {
         SysUserPo sysUserPo = sysUserDbService.getById(id);
         if (sysUserPo == null) {
-            return CommonResp.fail(ErrorCodeEnum.SYS_USER_NOT_EXIST);
+            return CommonResp.fail(MsErrorCodeEnum.SYS_USER_NOT_EXIST);
         }
         sysUserTxService.deleteUser(id);
         return CommonResp.success();
@@ -222,7 +227,7 @@ public class SysUserServiceImpl implements SysUserService {
     public CommonResp<Void> resetPassword(Long id) {
         SysUserPo sysUserPo = sysUserDbService.getById(id);
         if (sysUserPo == null) {
-            return CommonResp.fail(ErrorCodeEnum.SYS_USER_NOT_EXIST);
+            return CommonResp.fail(MsErrorCodeEnum.SYS_USER_NOT_EXIST);
         }
 
         String newPassword = passwordEncoder.encode(sysUserProperties.getDefaultPassword());
@@ -242,7 +247,7 @@ public class SysUserServiceImpl implements SysUserService {
                 .build());
         SysUserPo sysUserPo = sysUserPos.get(0);
         if (!passwordEncoder.matches(reqVo.getOldPassword(), sysUserPo.getPassword())) {
-            return CommonResp.fail(ErrorCodeEnum.OLD_PASSWORD_ERROR);
+            return CommonResp.fail(MsErrorCodeEnum.OLD_PASSWORD_ERROR);
         }
 
         String newPassword = passwordEncoder.encode(reqVo.getNewPassword());

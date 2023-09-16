@@ -22,9 +22,9 @@ import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpSession;
 import java.lang.reflect.Method;
-import java.util.Arrays;
-import java.util.List;
+import java.lang.reflect.Parameter;
 import java.util.Map;
+import java.util.function.BiPredicate;
 
 
 /***
@@ -41,16 +41,18 @@ public class OperationLogAspect {
     private SysUserLogDao sysUserLogDao;
 
     /**
-     * 请求参数无需记录操作日志的类型列表
-     */
-    private static final List<Class<?>> REQ_ARGS_NOT_LOG_CLASS_LIST = Arrays.asList(
-            ServletRequest.class, ServletResponse.class, HttpSession.class, MultipartFile.class
-    );
-
-    /**
      * 最大文本长度
      */
     private static final int MAX_TEXT_LENGTH = 65535;
+
+    /**
+     * 无需保存到 t_sys_user_log 的请求参数断言
+     */
+    private static final BiPredicate<Parameter, Object> NOT_LOG_REQUEST_PARAM_PREDICATE = (parameter, value) ->
+            value instanceof ServletRequest
+                    || value instanceof ServletResponse
+                    || value instanceof HttpSession
+                    || value instanceof MultipartFile;
 
     /**
      * 切入点
@@ -70,7 +72,6 @@ public class OperationLogAspect {
         Object returnObj = null;
         Throwable throwable = null;
         try {
-            log.info("请求参数args={}", JacksonUtil.toJsonStr(joinPoint.getArgs()));
             returnObj = joinPoint.proceed();
         } catch (Throwable te) {
             throwable = te;
@@ -89,10 +90,9 @@ public class OperationLogAspect {
     private void sysUserLog(ProceedingJoinPoint joinPoint, Object returnObj, Throwable throwable) throws NoSuchMethodException {
         Method sourceMethod = AopUtil.getSourceMethod(joinPoint);
         OperationLog operationLog = AnnotationUtils.getAnnotation(sourceMethod, OperationLog.class);
-        RtBizAssert.assertNotNull(operationLog, "获取@OperationLog注解为空,sourceMethod=" + joinPoint.getSignature());
+        RtBizAssert.assertNotNull(operationLog, "获取@OperationLog注解为空，sourceMethod=" + joinPoint.getSignature());
 
-        //指定类型的参数不记录
-        Map<String, Object> methodArgsMap = AopUtil.getMethodArgsMap(joinPoint, (parameter, value) -> REQ_ARGS_NOT_LOG_CLASS_LIST.contains(parameter.getClass()));
+        Map<String, Object> methodArgsMap = AopUtil.getMethodArgsMap(joinPoint, NOT_LOG_REQUEST_PARAM_PREDICATE);
         String reqParam = this.buildJsonData(methodArgsMap);
         String respData = StringUtils.EMPTY;
         if (operationLog.saveRespData()) {

@@ -52,11 +52,14 @@ jwt.token:
   #token前缀
   prefix: 'Bearer '
   #token加解密使用的密钥
-  secret: 'xxx-ms-secret'
+  secret: xxx-ms-secret
   #token有效期，单位：秒
   expiration: 3600
   #在token过期前多久秒内可以刷新token，单位：秒
   refresh-before-expire: 1200
+  #通知前端刷新token的响应头字段
+  refresh-response-header: Refresh-Token
+
 
 system:
   user:

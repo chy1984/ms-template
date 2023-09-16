@@ -2,7 +2,7 @@ package com.chy.xxx.ms.modules.system.service.business;
 
 import com.chy.xxx.ms.modules.system.vo.req.*;
 import com.chy.xxx.ms.modules.system.vo.resp.SysUserDetailRespVo;
-import com.chy.xxx.ms.modules.system.vo.resp.SysUserLoginRespVo;
+import com.chy.xxx.ms.modules.system.vo.resp.SysUserTokenRespVo;
 import com.chy.xxx.ms.modules.system.vo.resp.SysUserPageRespVo;
 import com.chy.xxx.ms.response.CommonPage;
 import com.chy.xxx.ms.response.CommonResp;
@@ -20,7 +20,7 @@ public interface SysUserService {
      * @param reqVo 请求参数
      * @return CommonResp<SysUserLoginRespVo>
      */
-    CommonResp<SysUserLoginRespVo> login(SysUserLoginReqVo reqVo);
+    CommonResp<SysUserTokenRespVo> login(SysUserLoginReqVo reqVo);
 
     /**
      * 登出
@@ -34,9 +34,17 @@ public interface SysUserService {
      * 获取用户详情
      *
      * @param username 用户名
-     * @return SysUserDetailRespVo
+     * @return CommonResp<SysUserDetailRespVo>
      */
     CommonResp<SysUserDetailRespVo> getUserDetail(String username);
+
+    /**
+     * 获取用户详情
+     *
+     * @param token 当前token
+     * @return SysUserTokenRespVo
+     */
+    CommonResp<SysUserTokenRespVo> refreshToken(String token);
 
     /**
      * 添加系统用户
@@ -66,7 +74,7 @@ public interface SysUserService {
      * 分页查询系统用户信息
      *
      * @param reqVo 请求参数
-     * @return CommonResp<CommonPage<SysUserRespVo>>
+     * @return CommonResp<CommonPage < SysUserRespVo>>
      */
     CommonResp<CommonPage<SysUserPageRespVo>> page(SysUserPageReqVo reqVo);
 
