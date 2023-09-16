@@ -131,7 +131,7 @@ import {
   saveRoleResource,
   roleStatusEnum
 } from '@/api/system/role'
-import { listResource, resTypeEnum } from '@/api/system/resource'
+import { listResource, resTypeEnum, buildResourceTree } from '@/api/system/resource'
 import { roleNameValidator } from '@/api/system/validator'
 
 // 枚举转换为map，key是status
@@ -155,11 +155,13 @@ export default {
         pageSize: 10
       },
       resourceQuery: {
-        resTypes: [resTypeEnum.menu.resType, resTypeEnum.operation.resType], // 菜单、按钮/操作
-        status: undefined // 不过滤状态，允许分配非生效中的资源
+        status: undefined, // 不过滤状态，允许分配非生效中的资源
+        resTypes: [resTypeEnum.menu.resType, resTypeEnum.operation.resType] // 菜单、按钮/操作
+
       },
       roleResourceQuery: {
-        roleId: undefined
+        roleId: undefined,
+        resTypes: [resTypeEnum.menu.resType, resTypeEnum.operation.resType] // 菜单、按钮/操作
       },
       saveRoleForm: {
         id: undefined,
@@ -199,6 +201,8 @@ export default {
       this.listLoading = true
       pageRole(this.roleQuery).then(response => {
         this.rolePage = response.data
+        this.listLoading = false
+      }).catch(err => {
         this.listLoading = false
       })
     },
@@ -291,48 +295,27 @@ export default {
           message: '删除系统角色成功'
         })
         this.getRoleList()
-      }).catch(err => {
-        console.error(err)
       })
     },
     handleGrantPermission(row) {
       this.resetSaveRoleResourceForm()
       this.saveRoleResourceForm.roleId = row.id
-
+      this.roleResourceQuery.roleId = row.id
+      console.log(this.resourceQuery)
       // 加载资源列表
       listResource(this.resourceQuery).then(response => {
-        // 按parentId分组
-        const resourceList = response.data
-        const parentResourceMap = resourceList.reduce((acc, cur) => {
-          acc[cur.parentId] = acc[cur.parentId] || []
-          acc[cur.parentId].push(cur)
-          return acc
-        }, {})
-        // 从根资源（根菜单）开始，递归构建资源树
-        this.resourceTree = resourceList.filter(resource => resource.parentId === 0)
-        this.buildResourceTree(this.resourceTree, parentResourceMap)
-      })
+        this.resourceTree = buildResourceTree(response.data)
 
-      // 加载当前角色拥有的资源
-      this.roleResourceQuery.roleId = row.id
-      listRoleResource(this.roleResourceQuery).then(response => {
-        const resourceList = response.data
-        this.saveRoleResourceForm.resIds = resourceList.map((item, index, self) => item.id)
-      })
-
-      this.saveRoleResourceFormVisible = true
-      this.$nextTick(() => {
-        this.$refs['saveRoleResourceForm'].clearValidate()
-      })
-    },
-    buildResourceTree(parentResourceList, parentResourceMap) {
-      parentResourceList.forEach(parentResource => {
-        const subResourceList = parentResourceMap[parentResource.id]
-        if (subResourceList) {
-          subResourceList.sort((res1, res2) => res1.seq - res2.seq)
-          parentResource.children = subResourceList
-          this.buildResourceTree(subResourceList, parentResourceMap)
-        }
+        // 加载当前角色拥有的资源
+        listRoleResource(this.roleResourceQuery).then(response => {
+          const resourceList = response.data
+          this.saveRoleResourceForm.resIds = resourceList.map((item, index, self) => item.id)
+          // 展示授权表单
+          this.saveRoleResourceFormVisible = true
+          this.$nextTick(() => {
+            this.$refs['saveRoleResourceForm'].clearValidate()
+          })
+        })
       })
     },
     saveRoleResource() {

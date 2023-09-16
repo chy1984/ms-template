@@ -135,7 +135,8 @@ import {
   deleteResource,
   resTypeEnum,
   resReqMethodList,
-  resStatusEnum
+  resStatusEnum,
+  buildResourceTree
 } from '@/api/system/resource'
 
 import { resNameValidator, resUrlValidator } from '@/api/system/validator'
@@ -179,7 +180,6 @@ export default {
       },
       saveFormResTypeOptions: resTypeEnum, // 新增、编辑表单的资源类型选项
       resourceTree: [], // 资源树
-      parentResourceTree: [], // 父资源树
       parentResourceTreeProps: {
         value: 'id',
         label: 'resName',
@@ -205,16 +205,9 @@ export default {
     getResourceList() {
       this.listLoading = true
       listResource(this.resourceQuery).then(response => {
-        // 按parentId分组
-        const resourceList = response.data
-        const parentResourceMap = resourceList.reduce((acc, cur) => {
-          acc[cur.parentId] = acc[cur.parentId] || []
-          acc[cur.parentId].push(cur)
-          return acc
-        }, {})
-        // 从根资源（根菜单）开始，递归构建资源树
-        this.resourceTree = resourceList.filter(resource => resource.parentId === 0)
-        this.buildResourceTree(this.resourceTree, parentResourceMap)
+        this.resourceTree = buildResourceTree(response.data)
+        this.listLoading = false
+      }).catch(err => {
         this.listLoading = false
       })
     },
@@ -308,16 +301,6 @@ export default {
         this.getResourceList()
       }).catch(err => {
         console.error(err)
-      })
-    },
-    buildResourceTree(parentResourceList, parentResourceMap) {
-      parentResourceList.forEach(parentResource => {
-        const subResourceList = parentResourceMap[parentResource.id]
-        if (subResourceList) {
-          subResourceList.sort((res1, res2) => res1.seq - res2.seq)
-          parentResource.children = subResourceList
-          this.buildResourceTree(subResourceList, parentResourceMap)
-        }
       })
     }
   }

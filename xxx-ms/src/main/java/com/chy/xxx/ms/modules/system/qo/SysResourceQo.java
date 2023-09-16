@@ -49,4 +49,9 @@ public class SysResourceQo {
      */
     private Long parentId;
 
+    /**
+     * 上级资源id列表
+     */
+    private List<Long> parentIds;
+
 }

@@ -1,4 +1,5 @@
 import request from '@/utils/request'
+import qs from 'qs'
 
 export function pageRole(params) {
   return request({
@@ -35,7 +36,8 @@ export function listRoleResource(params) {
   return request({
     url: '/v1/system/roles/resources/list',
     method: 'get',
-    params
+    params,
+    paramsSerializer: x => qs.stringify(x, { indices: false })
   })
 }
 

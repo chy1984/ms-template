@@ -1,31 +1,16 @@
 package com.chy.xxx.ms.modules.system.service.business.impl;
 
 import com.chy.xxx.ms.enums.ErrorCodeEnum;
+import com.chy.xxx.ms.modules.system.enums.SysResourceTypeEnum;
 import com.chy.xxx.ms.modules.system.mapper.SysResourceMapper;
 import com.chy.xxx.ms.modules.system.mapper.SysRoleMapper;
 import com.chy.xxx.ms.modules.system.mapper.SysUserMapper;
-import com.chy.xxx.ms.modules.system.po.SysResourcePo;
-import com.chy.xxx.ms.modules.system.po.SysRolePo;
-import com.chy.xxx.ms.modules.system.po.SysRoleResourcePo;
-import com.chy.xxx.ms.modules.system.po.SysUserPo;
-import com.chy.xxx.ms.modules.system.po.SysUserRolePo;
-import com.chy.xxx.ms.modules.system.qo.SysResourceQo;
-import com.chy.xxx.ms.modules.system.qo.SysRoleQo;
-import com.chy.xxx.ms.modules.system.qo.SysRoleResourceQo;
-import com.chy.xxx.ms.modules.system.qo.SysUserQo;
-import com.chy.xxx.ms.modules.system.qo.SysUserRoleQo;
+import com.chy.xxx.ms.modules.system.po.*;
+import com.chy.xxx.ms.modules.system.qo.*;
 import com.chy.xxx.ms.modules.system.service.business.SysRoleService;
-import com.chy.xxx.ms.modules.system.service.db.SysResourceDbService;
-import com.chy.xxx.ms.modules.system.service.db.SysRoleDbService;
-import com.chy.xxx.ms.modules.system.service.db.SysRoleResourceDbService;
-import com.chy.xxx.ms.modules.system.service.db.SysUserDbService;
-import com.chy.xxx.ms.modules.system.service.db.SysUserRoleDbService;
+import com.chy.xxx.ms.modules.system.service.db.*;
 import com.chy.xxx.ms.modules.system.service.tx.SysRoleTxService;
-import com.chy.xxx.ms.modules.system.vo.req.SysRoleAddReqVo;
-import com.chy.xxx.ms.modules.system.vo.req.SysRolePageReqVo;
-import com.chy.xxx.ms.modules.system.vo.req.SysRoleResourceListReqVo;
-import com.chy.xxx.ms.modules.system.vo.req.SysRoleResourceSaveReqVo;
-import com.chy.xxx.ms.modules.system.vo.req.SysRoleUpdateReqVo;
+import com.chy.xxx.ms.modules.system.vo.req.*;
 import com.chy.xxx.ms.modules.system.vo.resp.SysResourceRespVo;
 import com.chy.xxx.ms.modules.system.vo.resp.SysRolePageRespVo;
 import com.chy.xxx.ms.response.CommonPage;
@@ -43,9 +28,7 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import static java.util.stream.Collectors.groupingBy;
-import static java.util.stream.Collectors.mapping;
-import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.*;
 
 /**
  * 系统角色业务service实现<br/>
@@ -171,6 +154,7 @@ public class SysRoleServiceImpl implements SysRoleService {
                 .collect(toList());
         List<SysResourcePo> sysResourcePos = sysResourceDbService.listByQo(SysResourceQo.builder()
                 .ids(resIds)
+                .resTypes(reqVo.getResTypes())
                 .build());
         return CommonResp.success(sysResourceMapper.posToRespVos(sysResourcePos));
     }
@@ -179,6 +163,17 @@ public class SysRoleServiceImpl implements SysRoleService {
     public CommonResp<Void> saveRoleResources(SysRoleResourceSaveReqVo reqVo) {
         Long roleId = reqVo.getRoleId();
         List<Long> resIds = reqVo.getResIds();
+
+        //添加对应的接口资源
+        List<SysResourcePo> sysResourcePos = sysResourceDbService.listByQo(SysResourceQo.builder()
+                .parentIds(resIds)
+                .resType(SysResourceTypeEnum.INTERFACE.getResType())
+                .build());
+        List<Long> interfaceResIds = sysResourcePos.stream()
+                .map(SysResourcePo::getId)
+                .collect(Collectors.toList());
+        resIds.addAll(interfaceResIds);
+
         ArrayList<SysRoleResourcePo> sysRoleResourcePos = new ArrayList<>(resIds.size());
         resIds.forEach(resId -> sysRoleResourcePos.add(SysRoleResourcePo.builder()
                 .roleId(roleId)

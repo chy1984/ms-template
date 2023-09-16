@@ -55,6 +55,12 @@
             <if test="parentId!=null">
                 and parent_id = #{parentId}
             </if>
+            <if test="resTypes!=null and resTypes.size()>0">
+                and parent_id in
+                <foreach collection="parentIds" item="parentId" open="(" close=")" separator=",">
+                    #{parentId}
+                </foreach>
+            </if>
         </where>
     </select>
 

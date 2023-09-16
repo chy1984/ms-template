@@ -216,6 +216,8 @@ export default {
       pageUser(this.userQuery).then(response => {
         this.userPage = response.data
         this.listLoading = false
+      }).catch(err => {
+        this.listLoading = false
       })
     },
     getRoleList() {
@@ -318,8 +320,6 @@ export default {
           message: '删除系统用户成功'
         })
         this.getUserList()
-      }).catch(err => {
-        console.error(err)
       })
     },
     handleResetPassword(row) {
@@ -333,8 +333,6 @@ export default {
           type: 'success',
           message: '重置密码成功'
         })
-      }).catch(err => {
-        console.error(err)
       })
     }
   }

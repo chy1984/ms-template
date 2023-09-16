@@ -58,10 +58,10 @@ public class SysResourceController {
         return sysResourceService.delete(id);
     }
 
-    @ApiOperation("查询系统资源")
+    @ApiOperation("查询系统资源列表")
     @ApiOperationSupport(author = "chy chy@qq.com")
     @GetMapping("/v1/system/resources/list")
-    @OperationLog(value = "查询系统资源", saveRespData = false)
+    @OperationLog(value = "查询系统资源列表", saveRespData = false)
     public CommonResp<List<SysResourceRespVo>> list(@Valid SysResourceListReqVo reqVo) {
         return sysResourceService.list(reqVo);
     }
