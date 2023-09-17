@@ -8,6 +8,7 @@ import com.chy.xxx.ms.constant.CacheNameConstant;
 import com.chy.xxx.ms.modules.system.bo.SysUserResourceBo;
 import com.chy.xxx.ms.modules.system.enums.SysResourceStatusEnum;
 import com.chy.xxx.ms.modules.system.enums.SysRoleStatusEnum;
+import com.chy.xxx.ms.modules.system.enums.SysUserStatusEnum;
 import com.chy.xxx.ms.modules.system.po.*;
 import com.chy.xxx.ms.modules.system.qo.*;
 import com.chy.xxx.ms.modules.system.service.db.*;
@@ -51,8 +52,13 @@ public class SysUserResourceCacheService {
             return SysUserResourceBo.buildUserNotExist(username);
         }
 
-        //查询用户-角色关联关系
         SysUserPo sysUserPo = sysUserPos.get(0);
+        if (SysUserStatusEnum.DISABLED.getStatus().equals(sysUserPo.getStatus())) {
+            log.warn("用户账号已被禁用,username={}", username);
+            return SysUserResourceBo.buildUserNoResources(sysUserPo);
+        }
+
+        //查询用户-角色关联关系
         List<SysUserRolePo> sysUserRolePos = sysUserRoleDbService.listByQo(SysUserRoleQo.builder()
                 .userId(sysUserPo.getId())
                 .build());

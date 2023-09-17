@@ -40,7 +40,8 @@ import java.util.Map;
 import static java.util.stream.Collectors.*;
 
 /**
- * 系统用户业务service实现
+ * 系统用户业务service实现<br/>
+ * 说明：管理后台一般部署在内网、仅限内网ip访问，相对安全，此处的密码并未加密传输
  *
  * @author chy
  */
@@ -71,7 +72,6 @@ public class SysUserServiceImpl implements SysUserService {
     @Override
     public SysUserTokenRespVo login(SysUserLoginReqVo reqVo) {
         String username = reqVo.getUsername();
-        //密码需要客户端加密后传递
         List<SysUserPo> sysUserPos = sysUserDbService.listByQo(SysUserQo.builder()
                 .username(username)
                 .build());
@@ -164,6 +164,7 @@ public class SysUserServiceImpl implements SysUserService {
         SysUserPo sysUserPo = sysUserDbService.getById(id);
         RtBizAssert.assertNotNull(sysUserPo, MsErrorCodeEnum.SYS_USER_NOT_EXIST, "userId=" + id);
         sysUserTxService.deleteUser(id);
+        sysUserResourceCacheService.removeUserResourceCache(sysUserPo.getUsername());
     }
 
     @Override

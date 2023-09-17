@@ -31,9 +31,9 @@ import java.util.concurrent.ConcurrentHashMap;
 public class DynamicSecurityMetadataSource implements FilterInvocationSecurityMetadataSource, CommandLineRunner {
 
     /**
-     * 存储所有接口资源的访问规则，todo：资源更新时刷新此map
+     * 存储所有接口资源的访问规则
      */
-    private static final Map<String, ConfigAttribute> CONFIG_ATTRIBUTE_MAP = new ConcurrentHashMap<>();
+    private static final Map<String, ConfigAttribute> ALL_CONFIG_ATTRIBUTE_MAP = new ConcurrentHashMap<>();
 
     @Resource
     private SysResourceDbService sysResourceDbService;
@@ -43,16 +43,17 @@ public class DynamicSecurityMetadataSource implements FilterInvocationSecurityMe
         //获取当前请求的请求方式、接口路径
         FilterInvocation filterInvocation = (FilterInvocation) o;
         String requestMethod = filterInvocation.getRequest().getMethod();
+        //获取的是接口路径，会自动剔除项目路径、get请求?的查询字符串
         String path = URI.create(filterInvocation.getRequestUrl()).getPath();
 
-        //获取访问当前请求资源的所有访问规则。eg.查询用户信息/v1/system/users/info，可能定义了多个访问规则：/v1/system/users/**、/v1/system/**
+        //获取当前资源所支持/匹配的访问规则，这些规则是or的关系，用户满足其中1个即可
         List<ConfigAttribute> configAttributes = new ArrayList<>();
         PathMatcher pathMatcher = new AntPathMatcher();
-        for (String pattern : CONFIG_ATTRIBUTE_MAP.keySet()) {
-            //请求方式、url均匹配
-            String[] split = pattern.split(MsSecurityConstant.RES_SEPARATOR);
+        for (Map.Entry<String, ConfigAttribute> entry : ALL_CONFIG_ATTRIBUTE_MAP.entrySet()) {
+            //请求方式、url均匹配，url支持通配符*、**
+            String[] split = StringUtils.split(entry.getKey(), MsSecurityConstant.RES_REQ_METHOD_URL_SEPARATOR);
             if (StringUtils.equalsIgnoreCase(split[0], requestMethod) && pathMatcher.match(split[1], path)) {
-                configAttributes.add(CONFIG_ATTRIBUTE_MAP.get(pattern));
+                configAttributes.add(entry.getValue());
             }
         }
         return configAttributes;
@@ -60,7 +61,7 @@ public class DynamicSecurityMetadataSource implements FilterInvocationSecurityMe
 
     @Override
     public Collection<ConfigAttribute> getAllConfigAttributes() {
-        return Collections.emptyList();
+        return ALL_CONFIG_ATTRIBUTE_MAP.values();
     }
 
     @Override
@@ -71,17 +72,26 @@ public class DynamicSecurityMetadataSource implements FilterInvocationSecurityMe
     @Override
     public void run(String... args) throws Exception {
         //服务启动后自动加载生效中的系统接口资源
-        log.info("开始加载系统接口资源...");
+        this.reloadAllInterfaceRes();
+    }
+
+    /**
+     * 全量加载系统资源。系统资源有变更时，需要调用此方法更新接口访问规则
+     */
+    public void reloadAllInterfaceRes() {
+        log.info("全量加载加载系统接口资源--开始");
         List<SysResourcePo> sysResourcePos = sysResourceDbService.listByQo(SysResourceQo.builder()
                 .resType(SysResourceTypeEnum.INTERFACE.getResType())
+                //只加载生效中的资源
                 .status(SysResourceStatusEnum.NORMAL.getStatus())
                 .build());
+        ALL_CONFIG_ATTRIBUTE_MAP.clear();
         for (SysResourcePo sysResourcePo : sysResourcePos) {
-            String key = sysResourcePo.getResReqMethod() + MsSecurityConstant.RES_SEPARATOR + sysResourcePo.getResUrl();
-            ConfigAttribute configAttribute = new SecurityConfig(sysResourcePo.getId() + MsSecurityConstant.RES_SEPARATOR + sysResourcePo.getResName());
-            CONFIG_ATTRIBUTE_MAP.put(key, configAttribute);
+            String resKey = sysResourcePo.getResReqMethod() + MsSecurityConstant.RES_REQ_METHOD_URL_SEPARATOR + sysResourcePo.getResUrl();
+            ConfigAttribute configAttribute = new SecurityConfig(resKey);
+            ALL_CONFIG_ATTRIBUTE_MAP.put(resKey, configAttribute);
         }
-        log.info("系统接口资源加载完毕,共计{}个", CONFIG_ATTRIBUTE_MAP.size());
+        log.info("全量加载加载系统接口资源--结束，共计加载接口{}个", ALL_CONFIG_ATTRIBUTE_MAP.size());
     }
 
 }

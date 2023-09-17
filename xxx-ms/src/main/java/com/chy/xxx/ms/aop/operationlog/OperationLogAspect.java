@@ -118,6 +118,8 @@ public class OperationLogAspect {
             return StringUtils.EMPTY;
         }
         String jsonStr = JacksonUtil.toJsonStr(obj);
+        //替换敏感字段
+        jsonStr = jsonStr.replaceAll(",?\"\\w*[Pp]assword\":\".*\"", "");
         //超过最大长度则截取
         if (jsonStr.length() > MAX_TEXT_LENGTH) {
             jsonStr = jsonStr.substring(0, MAX_TEXT_LENGTH);

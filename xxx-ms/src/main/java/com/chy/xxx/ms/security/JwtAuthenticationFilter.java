@@ -2,6 +2,7 @@ package com.chy.xxx.ms.security;
 
 import com.chy.xxx.ms.component.JwtTokenService;
 import com.chy.xxx.ms.enums.MsErrorCodeEnum;
+import com.chy.xxx.ms.exception.ServiceRuntimeException;
 import com.chy.xxx.ms.modules.system.po.SysUserPo;
 import com.chy.xxx.ms.properties.JwtTokenProperties;
 import com.chy.xxx.ms.request.RequestContextHolder;
@@ -14,7 +15,6 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -57,7 +57,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             if (Boolean.TRUE.equals(jwtTokenService.needRefreshToken(token).getLeft())) {
                 String refreshResponseHeader = jwtTokenProperties.getRefreshResponseHeader();
                 response.setHeader(refreshResponseHeader, "true");
-                //浏览器默认只暴露 cache-control、content-type、expires、pragma 等少数响应头给前端，需要在
+                //浏览器默认只暴露 cache-control、content-type、expires、pragma 等少数响应头给前端，需要在响应头或跨域配置的 Access-Control-Expose-Headers 中暴露此响应头，前端才能取到
                 response.setHeader("Access-Control-Expose-Headers", refreshResponseHeader);
             }
 
@@ -68,9 +68,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 //此处 try...catch 返回指定的错误信息，与未通过jwt认证 MsAuthenticationEntryPoint 返回的错误信息作区分
                 try {
                     userDetails = userDetailsService.loadUserByUsername(username);
-                } catch (UsernameNotFoundException e) {
-                    log.error("【加载系统用户详细信息】用户不存在，username={}", username, e);
-                    HttpUtil.flushResponse(response, CommonResp.fail(MsErrorCodeEnum.SYS_USER_NOT_EXIST));
+                } catch (ServiceRuntimeException e) {
+                    log.error("【加载系统用户详细信息】发生服务运行时异常，username={}", username, e);
+                    HttpUtil.flushResponse(response, CommonResp.fail(e.getErrorCode()));
                     return;
                 } catch (Exception e) {
                     log.error("【加载系统用户详细信息】执行异常，username={}", username, e);

@@ -47,9 +47,9 @@ public class SysUserDetails implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        //返回当前用户具有的资源
+        //返回当前用户具有权限的接口资源
         return this.interfaceList.stream()
-                .map(resourcePo -> new SimpleGrantedAuthority(resourcePo.getId() + MsSecurityConstant.RES_SEPARATOR + resourcePo.getResName()))
+                .map(resourcePo -> new SimpleGrantedAuthority(resourcePo.getResReqMethod() + MsSecurityConstant.RES_REQ_METHOD_URL_SEPARATOR + resourcePo.getResUrl()))
                 .collect(Collectors.toList());
     }
 

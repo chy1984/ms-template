@@ -14,7 +14,7 @@ import lombok.Getter;
 public enum SysResourceStatusEnum {
 
     /**
-     * 系统资源状态枚举实例
+     * 系统资源配置的是资源访问规则，正常表示该条访问规则是生效中的，禁用指的的是该条访问规则作废，并不是资源作废
      */
     NORMAL(0, "正常"),
     DISABLE(1, "禁用"),

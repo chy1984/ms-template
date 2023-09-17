@@ -4,8 +4,6 @@ import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
-import java.util.List;
-
 /**
  * 后台鉴权属性配置
  *
@@ -19,6 +17,6 @@ public class MsSecurityProperties {
     /**
      * 白名单url，直接放行
      */
-    private List<String> ignoreUrls;
+    private String[] ignoreUrls;
 
 }
