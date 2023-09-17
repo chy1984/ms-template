@@ -17,18 +17,20 @@
       </el-form-item>
       <el-form-item label="状态">
         <el-select v-model="userQuery.status" clearable>
-          <el-option v-for="item in userStatusEnum" :key="item.status" :label="item.desc" :value="item.status"/>
+          <el-option v-for="item in userStatusEnum" :key="item['status']" :label="item['desc']"
+                     :value="item['status']"
+          />
         </el-select>
       </el-form-item>
       <el-form-item label="角色">
         <el-select v-model="userQuery.roleId" class="dialog-role-select" clearable filterable>
-          <el-option v-for="role in roleList" :key="role.id" :label="role.roleName" :value="role.id"/>
+          <el-option v-for="role in roleList" :key="role['id']" :label="role['roleName']" :value="role['id']"/>
         </el-select>
       </el-form-item>
       <el-form-item>
         <el-button type="primary" @click="search">查询</el-button>
         <el-button type="warning" @click="resetUserQuery">清空</el-button>
-        <el-button type="success" @click="handleAdd">添加</el-button>
+        <el-button v-permission="userOperation.add" type="success" @click="handleAdd">添加</el-button>
       </el-form-item>
     </el-form>
 
@@ -63,20 +65,22 @@
       </el-table-column>
       <el-table-column label="角色" align="center">
         <template slot-scope="{row}">
-          <el-tag v-for="roleId of row.roleIds" :key="roleId">
-            {{ roleMap[roleId].roleName }}
+          <el-tag v-if="row.roleIds" v-for="roleId of row.roleIds" :key="roleId">
+            {{ roleMap[roleId]['roleName'] }}
           </el-tag>
         </template>
       </el-table-column>
       <el-table-column label="操作" align="center" width="240">
         <template slot-scope="{row}">
-          <el-button type="primary" size="small" @click="handleEdit(row)">
+          <el-button v-permission="userOperation.edit" @click="handleEdit(row)" type="primary" size="small">
             编辑
           </el-button>
-          <el-button type="warning" size="small" @click="handleResetPassword(row)">
+          <el-button v-permission="userOperation.resetPassword" @click="handleResetPassword(row)" type="warning"
+                     size="small"
+          >
             重置密码
           </el-button>
-          <el-button type="danger" size="small" @click="handleDelete(row)">
+          <el-button v-permission="userOperation.delete" @click="handleDelete(row)" type="danger" size="small">
             删除
           </el-button>
         </template>
@@ -98,8 +102,13 @@
 
     <!-- 添加、编辑表单 -->
     <el-dialog :title="isEdit ? '编辑系统用户' : '添加系统用户'" :visible.sync="saveUserFormVisible">
-      <el-form ref="saveUserForm" :rules="saveUserRules" :model="saveUserForm" label-position="left" label-width="80px"
-               style="width: 500px; margin-left:50px;"
+      <el-form
+        ref="saveUserForm"
+        :rules="saveUserRules"
+        :model="saveUserForm"
+        label-position="left"
+        label-width="80px"
+        style="width: 500px; margin-left:50px;"
       >
         <el-form-item label="用户名" prop="username">
           <el-input v-model="saveUserForm.username" :disabled="isEdit" clearable placeholder="只能包含英文、数字、下划线，2~50个字符"/>
@@ -115,14 +124,16 @@
         </el-form-item>
         <el-form-item label="状态" prop="status">
           <el-select v-model="saveUserForm.status" clearable placeholder="请选择状态">
-            <el-option v-for="item in userStatusEnum" :key="item.status" :label="item.desc" :value="item.status"/>
+            <el-option v-for="item in userStatusEnum" :key="item['status']" :label="item['desc']"
+                       :value="item['status']"
+            />
           </el-select>
         </el-form-item>
         <el-form-item label="角色" prop="roleIds">
-          <el-select v-model="saveUserForm.roleIds" class="dialog-role-select" clearable multiple filterable
+          <el-select v-model="saveUserForm.roleIds" clearable multiple filterable class="dialog-role-select"
                      placeholder="请选择1个或多个角色"
           >
-            <el-option v-for="role in roleList" :key="role.id" :label="role.roleName" :value="role.id"/>
+            <el-option v-for="role in roleList" :key="role['id']" :label="role['roleName']" :value="role['id']"/>
           </el-select>
         </el-form-item>
       </el-form>
@@ -143,6 +154,7 @@
 import { pageUser, addUser, updateUser, deleteUser, resetPassword, userStatusEnum } from '@/api/system/user'
 import { pageRole } from '@/api/system/role'
 import { usernameValidator, realNameValidator, telValidator } from '@/api/system/validator'
+import { operationList } from '@/directive/permission/operation-list'
 
 // 枚举转换为map，key是status
 const userStatusMap = Object.values(userStatusEnum).reduce((acc, cur) => {
@@ -152,15 +164,11 @@ const userStatusMap = Object.values(userStatusEnum).reduce((acc, cur) => {
 
 export default {
   name: 'SystemUser',
-  filters: {
-    userStatusFilter(status) {
-      return userStatusMap[status].desc
-    }
-  },
   data() {
     return {
       userStatusEnum: userStatusEnum,
       userStatusMap: userStatusMap,
+      userOperation: operationList.system.user,
       isEdit: false,
       listLoading: true,
       userQuery: {
@@ -215,8 +223,7 @@ export default {
       this.listLoading = true
       pageUser(this.userQuery).then(response => {
         this.userPage = response.data
-        this.listLoading = false
-      }).catch(err => {
+      }).finally(() => {
         this.listLoading = false
       })
     },

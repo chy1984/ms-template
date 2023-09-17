@@ -8,13 +8,15 @@
       </el-form-item>
       <el-form-item label="状态">
         <el-select v-model="roleQuery.status" clearable>
-          <el-option v-for="item in roleStatusEnum" :key="item.status" :label="item.desc" :value="item.status"/>
+          <el-option v-for="item in roleStatusEnum" :key="item['status']" :label="item['desc']"
+                     :value="item['status']"
+          />
         </el-select>
       </el-form-item>
       <el-form-item>
         <el-button type="primary" @click="search">查询</el-button>
         <el-button type="warning" @click="resetRoleQuery">清空</el-button>
-        <el-button type="success" @click="handleAdd">添加</el-button>
+        <el-button v-permission="roleOperation.add" type="success" @click="handleAdd">添加</el-button>
       </el-form-item>
     </el-form>
 
@@ -41,13 +43,15 @@
       </el-table-column>
       <el-table-column label="操作" align="center" width="220">
         <template slot-scope="{row}">
-          <el-button type="primary" size="small" @click="handleEdit(row)">
+          <el-button v-permission="roleOperation.edit" @click="handleEdit(row)" type="primary" size="small">
             编辑
           </el-button>
-          <el-button type="warning" size="small" @click="handleGrantPermission(row)">
+          <el-button v-permission="roleOperation.grantPermission" @click="handleGrantPermission(row)"
+                     type="warning" size="small"
+          >
             授权
           </el-button>
-          <el-button type="danger" size="small" @click="handleDelete(row)">
+          <el-button v-permission="roleOperation.delete" @click="handleDelete(row)" type="danger" size="small">
             删除
           </el-button>
         </template>
@@ -77,7 +81,9 @@
         </el-form-item>
         <el-form-item label="状态" prop="status">
           <el-select v-model="saveRoleForm.status" clearable placeholder="请选择状态">
-            <el-option v-for="item in roleStatusEnum" :key="item.status" :label="item.desc" :value="item.status"/>
+            <el-option v-for="item in roleStatusEnum" :key="item['status']" :label="item['desc']"
+                       :value="item['status']"
+            />
           </el-select>
         </el-form-item>
       </el-form>
@@ -94,16 +100,11 @@
     <!-- 角色授权表单 -->
     <el-dialog title="系统角色授权" :visible.sync="saveRoleResourceFormVisible">
       <el-form ref="saveRoleResourceForm" :rules="saveRoleResourceRules" :model="saveRoleResourceForm"
-               label-position="left" label-width="80px"
-               style="width: 500px; margin-left:50px;"
+               label-position="left" label-width="80px" style="width: 500px; margin-left:50px;"
       >
         <el-form-item prop="resIds">
-          <el-tree ref="resourceTree"
-                   :data="resourceTree"
-                   :default-checked-keys="defaultCheckedLeafKeys"
-                   :props="resourceTreeProps"
-                   node-key="id"
-                   show-checkbox
+          <el-tree ref="resourceTree" :data="resourceTree" :default-checked-keys="defaultCheckedLeafKeys"
+                   :props="resourceTreeProps" node-key="id" show-checkbox
           >
           </el-tree>
         </el-form-item>
@@ -123,16 +124,11 @@
 
 <script>
 import {
-  pageRole,
-  addRole,
-  updateRole,
-  deleteRole,
-  listRoleResource,
-  saveRoleResource,
-  roleStatusEnum
+  pageRole, addRole, updateRole, deleteRole, listRoleResource, saveRoleResource, roleStatusEnum
 } from '@/api/system/role'
 import { listResource, resTypeEnum, buildResourceTree } from '@/api/system/resource'
 import { roleNameValidator } from '@/api/system/validator'
+import { operationList } from '@/directive/permission/operation-list'
 
 // 枚举转换为map，key是status
 const roleStatusMap = Object.values(roleStatusEnum).reduce((acc, cur) => {
@@ -146,6 +142,7 @@ export default {
     return {
       roleStatusEnum: roleStatusEnum,
       roleStatusMap: roleStatusMap,
+      roleOperation: operationList.system.role,
       isEditRole: false,
       listLoading: true,
       roleQuery: {
@@ -202,8 +199,7 @@ export default {
       this.listLoading = true
       pageRole(this.roleQuery).then(response => {
         this.rolePage = response.data
-        this.listLoading = false
-      }).catch(err => {
+      }).finally(() => {
         this.listLoading = false
       })
     },

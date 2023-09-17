@@ -14,6 +14,8 @@ import router from './router'
 
 import '@/icons' // icon
 import '@/permission' // permission control
+import { permission } from '@/directive/permission'
+import { checkPermission } from '@/directive/permission/permission'
 
 /**
  * If you don't want to use mock-server
@@ -33,6 +35,9 @@ Vue.use(ElementUI)
 // Vue.use(ElementUI, { locale })
 
 Vue.config.productionTip = false
+
+Vue.prototype.checkPermission = checkPermission
+Vue.use(permission)
 
 new Vue({
   el: '#app',

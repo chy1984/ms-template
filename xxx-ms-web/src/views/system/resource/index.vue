@@ -4,13 +4,13 @@
     <!-- 头部表单 -->
     <el-form :inline="true" size="small">
       <el-form-item>
-        <el-button type="success" @click="handleAddRootMenu">添加根菜单</el-button>
+        <el-button v-permission="resOperation.add" type="success" @click="handleAddRootMenu">添加根菜单</el-button>
       </el-form-item>
     </el-form>
 
     <!-- 内容表格 -->
-    <el-table v-loading="listLoading" :data="resourceTree" row-key="id"
-              border fit highlight-current-row style="width: 100%"
+    <el-table v-loading="listLoading" :data="resourceTree" row-key="id" border fit highlight-current-row
+              style="width: 100%"
     >
       <el-table-column label="资源名称">
         <template slot-scope="{row}">
@@ -52,16 +52,18 @@
       </el-table-column>
       <el-table-column label="操作" width="250">
         <template slot-scope="{row}">
-          <el-button type="primary" size="small" @click="handleEdit(row)">
+          <el-button v-permission="resOperation.edit" @click="handleEdit(row)" type="primary" size="small">
             编辑
           </el-button>
-          <el-button type="warning" size="small" v-show="row.resType !== resTypeEnum.interface.resType"
-                     @click="handleAddChild(row)"
+          <el-button v-if="checkPermission(resOperation.add) && row.resType !== resTypeEnum.interface.resType"
+                     @click="handleAddChild(row)" type="warning" size="small"
           >
             添加子资源
           </el-button>
-          <el-tooltip :disabled="row.children===undefined" effect="dark" content="有子资源，不能被删除" placement="top">
-            <el-button type="danger" size="small" :disabled="row.children!==undefined" @click="handleDelete(row)">
+          <el-tooltip v-permission="resOperation.delete" :disabled="row.children===undefined"
+                      content="有子资源，不能被删除" placement="top"
+          >
+            <el-button @click="handleDelete(row)" type="danger" size="small" :disabled="row.children!==undefined">
               删除
             </el-button>
           </el-tooltip>
@@ -79,16 +81,16 @@
         </el-form-item>
         <el-form-item label="资源类型" prop="resType">
           <el-select v-model="saveResourceForm.resType" clearable placeholder="请选择资源类型" :disabled="isEdit">
-            <el-option v-for="item in saveFormResTypeOptions" :key="item.resType" :label="item.desc"
-                       :value="item.resType"
+            <el-option v-for="item in saveFormResTypeOptions" :key="item['resType']" :label="item['desc']"
+                       :value="item['resType']"
             />
           </el-select>
         </el-form-item>
         <el-form-item label="资源url" prop="resUrl">
           <el-input v-model="saveResourceForm.resUrl" clearable placeholder="盘符变量用*表示，2~100个字符"/>
         </el-form-item>
-        <el-form-item label="请求方式" prop="resReqMethod"
-                      v-show="saveResourceForm.resType === resTypeEnum.interface.resType"
+        <el-form-item v-show="saveResourceForm.resType === resTypeEnum.interface.resType" label="请求方式"
+                      prop="resReqMethod"
         >
           <el-select v-model="saveResourceForm.resReqMethod" clearable placeholder="请选择请求方式">
             <el-option v-for="item in resReqMethodList" :key="item" :label="item" :value="item"/>
@@ -106,7 +108,8 @@
         </el-form-item>
         <el-form-item label="资源状态" prop="status">
           <el-select v-model="saveResourceForm.status" clearable placeholder="请选择状态">
-            <el-option v-for="item in resStatusEnum" :key="item.status" :label="item.desc" :value="item.status"/>
+            <el-option v-for="item in resStatusEnum" :key="item['status']" :label="item['desc']" :value="item['status']"
+            />
           </el-select>
           <span class="res-status-tip">禁用即作废此条资源访问规则</span>
         </el-form-item>
@@ -132,17 +135,11 @@
 
 <script>
 import {
-  listResource,
-  addResource,
-  updateResource,
-  deleteResource,
-  resTypeEnum,
-  resReqMethodList,
-  resStatusEnum,
-  buildResourceTree
+  listResource, addResource, updateResource, deleteResource,
+  resTypeEnum, resReqMethodList, resStatusEnum, buildResourceTree
 } from '@/api/system/resource'
-
 import { resNameValidator, resUrlValidator } from '@/api/system/validator'
+import { operationList } from '@/directive/permission/operation-list'
 
 // 枚举转换为map，key是status
 const resStatusMap = Object.values(resStatusEnum).reduce((acc, cur) => {
@@ -164,6 +161,7 @@ export default {
       resStatusEnum: resStatusEnum,
       resTypeMap: resTypeMap,
       resStatusMap: resStatusMap,
+      resOperation: operationList.system.resource,
       isEdit: false,
       listLoading: true,
       resourceQuery: {
@@ -209,8 +207,7 @@ export default {
       this.listLoading = true
       listResource(this.resourceQuery).then(response => {
         this.resourceTree = buildResourceTree(response.data)
-        this.listLoading = false
-      }).catch(err => {
+      }).finally(() => {
         this.listLoading = false
       })
     },
@@ -320,7 +317,7 @@ export default {
   margin-right: 20px;
 }
 
-.res-status-tip{
+.res-status-tip {
   display: inline-block;
   margin-left: 20px;
   font-size: small;

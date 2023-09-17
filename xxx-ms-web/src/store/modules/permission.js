@@ -7,8 +7,19 @@ import { asyncRoutes, constantRoutes } from '@/router'
  */
 function hasPermission(menuList, route) {
   if (route.meta && route.meta.resUrl) {
-    return menuList.some(menu => menu.resUrl === route.meta.resUrl)
+    const menu = menuList.find(x => x.resUrl === route.meta.resUrl)
+    if (!menu) {
+      return false
+    }
+    // 在路由配置中指定各个菜单的默认标题、icon、seq，如果接口有下发则使用接口下发的
+    route.meta.title = menu.resName
+    route.meta.seq = menu.seq
+    if (menu.resIcon) {
+      route.meta.icon = menu.resIcon
+    }
   }
+
+  // 如果没使用meta.resUrl配置所需权限，则认为不需要权限控制，直接展示
   return true
 }
 
@@ -30,15 +41,11 @@ export function filterAsyncRoutes(routes, menuList) {
       if (tmp.children) {
         route.alwaysShow = true
       }
-      // 在路由配置中指定各个菜单的默认icon，如果接口有下发则使用接口下发的icon
-      if (tmp.resIcon) {
-        route.meta.icon = tmp.resIcon
-      }
       res.push(tmp)
     }
   })
 
-  return res
+  return res.sort((res1, res2) => res2.seq - res1.seq)
 }
 
 const state = {
