@@ -9,6 +9,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.util.Collection;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * 运行时业务断言，不符合期望时抛出 ServiceRuntimeException<br/>
@@ -84,6 +85,20 @@ public class RtBizAssert {
         }
     }
 
+    public static void assertEquals(Object obj1, Object obj2, String detailMessage) {
+        if (!Objects.equals(obj1, obj2)) {
+            log.error("入参obj1、obj2不相等，detailMessage={}", detailMessage);
+            throw new ServiceRuntimeException(detailMessage);
+        }
+    }
+
+    public static void assertNotEquals(Object obj1, Object obj2, String detailMessage) {
+        if (Objects.equals(obj1, obj2)) {
+            log.error("入参obj1、obj2相等，detailMessage={}", detailMessage);
+            throw new ServiceRuntimeException(detailMessage);
+        }
+    }
+
     public static void assertNotNull(Object obj, IErrorCode errorCode, String detailMessage) {
         if (obj == null) {
             log.error("入参obj为空, errorCode={}，detailMessage={}", errorCode, detailMessage);
@@ -143,6 +158,20 @@ public class RtBizAssert {
     public static void assertFalse(Boolean bool, IErrorCode errorCode, String detailMessage) {
         if (BooleanUtils.isNotFalse(bool)) {
             log.error("入参bool不为false，errorCode={}，detailMessage={}", errorCode, detailMessage);
+            throw new ServiceRuntimeException(errorCode, detailMessage);
+        }
+    }
+
+    public static void assertEquals(Object obj1, Object obj2, IErrorCode errorCode, String detailMessage) {
+        if (!Objects.equals(obj1, obj2)) {
+            log.error("入参obj1、obj2不相等，errorCode={}，detailMessage={}", errorCode, detailMessage);
+            throw new ServiceRuntimeException(errorCode, detailMessage);
+        }
+    }
+
+    public static void assertNotEquals(Object obj1, Object obj2, IErrorCode errorCode, String detailMessage) {
+        if (Objects.equals(obj1, obj2)) {
+            log.error("入参obj1、obj2相等，errorCode={}，detailMessage={}", errorCode, detailMessage);
             throw new ServiceRuntimeException(errorCode, detailMessage);
         }
     }

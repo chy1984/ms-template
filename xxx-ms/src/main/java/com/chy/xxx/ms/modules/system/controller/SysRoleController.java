@@ -43,7 +43,8 @@ public class SysRoleController {
     @PostMapping("/v1/system/roles")
     @OperationLog("添加系统角色")
     public CommonResp<Void> add(@Valid @RequestBody SysRoleAddReqVo reqVo) {
-        return sysRoleService.add(reqVo);
+        sysRoleService.add(reqVo);
+        return CommonResp.success();
     }
 
     @ApiOperation("更新系统角色")
@@ -51,7 +52,8 @@ public class SysRoleController {
     @PutMapping("/v1/system/roles")
     @OperationLog("更新系统角色")
     public CommonResp<Void> update(@Valid @RequestBody SysRoleUpdateReqVo reqVo) {
-        return sysRoleService.update(reqVo);
+        sysRoleService.update(reqVo);
+        return CommonResp.success();
     }
 
     @ApiOperation("删除系统角色")
@@ -59,7 +61,8 @@ public class SysRoleController {
     @DeleteMapping("/v1/system/roles/{id}")
     @OperationLog("删除系统角色")
     public CommonResp<Void> delete(@PathVariable("id") Long id) {
-        return sysRoleService.delete(id);
+        sysRoleService.delete(id);
+        return CommonResp.success();
     }
 
     @ApiOperation("分页查询系统角色")
@@ -67,7 +70,7 @@ public class SysRoleController {
     @GetMapping("/v1/system/roles/page")
     @OperationLog("分页查询系统角色")
     public CommonResp<CommonPage<SysRolePageRespVo>> page(@Valid SysRolePageReqVo reqVo) {
-        return sysRoleService.page(reqVo);
+        return CommonResp.success(sysRoleService.page(reqVo));
     }
 
     @ApiOperation("查询系统角色具有的资源列表")
@@ -75,7 +78,7 @@ public class SysRoleController {
     @GetMapping("/v1/system/roles/resources/list")
     @OperationLog("查询系统角色具有的资源列表")
     public CommonResp<List<SysResourceRespVo>> listRoleResources(@Valid SysRoleResourceListReqVo reqVo) {
-        return sysRoleService.listRoleResources(reqVo);
+        return CommonResp.success(sysRoleService.listRoleResources(reqVo));
     }
 
     @ApiOperation("保存系统角色资源配置")
@@ -83,7 +86,8 @@ public class SysRoleController {
     @PostMapping("/v1/system/roles/resources")
     @OperationLog("保存系统角色资源配置")
     public CommonResp<Void> saveRoleResources(@Valid @RequestBody SysRoleResourceSaveReqVo reqVo) {
-        return sysRoleService.saveRoleResources(reqVo);
+        sysRoleService.saveRoleResources(reqVo);
+        return CommonResp.success();
     }
 
 }

@@ -4,7 +4,6 @@ import com.chy.xxx.ms.modules.system.vo.req.SysResourceAddReqVo;
 import com.chy.xxx.ms.modules.system.vo.req.SysResourceListReqVo;
 import com.chy.xxx.ms.modules.system.vo.req.SysResourceUpdateReqVo;
 import com.chy.xxx.ms.modules.system.vo.resp.SysResourceRespVo;
-import com.chy.xxx.ms.response.CommonResp;
 
 import java.util.List;
 
@@ -19,32 +18,29 @@ public interface SysResourceService {
      * 添加系统资源
      *
      * @param reqVo 请求参数
-     * @return CommonResp<Void>
      */
-    CommonResp<Void> add(SysResourceAddReqVo reqVo);
+    void add(SysResourceAddReqVo reqVo);
 
     /**
      * 更新资源信息
      *
      * @param reqVo 请求参数
-     * @return CommonResp<Void>
      */
-    CommonResp<Void> update(SysResourceUpdateReqVo reqVo);
+    void update(SysResourceUpdateReqVo reqVo);
 
     /**
      * 删除系统资源
      *
      * @param id 主键id
-     * @return CommonResp<Void>
      */
-    CommonResp<Void> delete(Long id);
+    void delete(Long id);
 
     /**
      * 查询系统资源
      *
      * @param reqVo 请求参数
-     * @return CommonResp<List<SysResourceRespVo>>
+     * @return List<SysResourceRespVo>
      */
-    CommonResp<List<SysResourceRespVo>> list(SysResourceListReqVo reqVo);
+    List<SysResourceRespVo> list(SysResourceListReqVo reqVo);
 
 }

@@ -21,7 +21,7 @@ public enum MsErrorCodeEnum implements IErrorCode {
     SUCCESS("000000", "操作成功"),
     PARAM_ERROR("900000", "参数错误"),
     UNAUTHORIZED("900001", "未登录或token不合法"),
-    FORBIDDEN("900002", "没有访问权限"),
+    FORBIDDEN("900002", "没有相关权限"),
     NOT_IMPLEMENTED("900003", "接口暂未实现"),
     UNKNOWN_ERROR("999999", "系统繁忙，请稍后再试"),
 
@@ -37,7 +37,9 @@ public enum MsErrorCodeEnum implements IErrorCode {
     SYS_RESOURCE_NOT_EXIST("100008", "资源不存在"),
     CANNOT_DELETE_RESOURCE_WITH_SUB_RESOURCES("100009", "该资源下挂有子资源，不能被删除"),
     PARENT_RESOURCE_MAPPING_ERROR("100010", "父子资源关联关系不合法"),
-
+    SYS_RESOURCE_TYPE_ERROR("100011", "资源类型不合法"),
+    SYS_MENU_AND_RESOURCE_URL_NOT_REPEAT("100012", "菜单、操作/按钮的资源url不能重复"),
+    SYS_INTERFACE_REQ_METHOD_AND_URL_NOT_REPEAT("100013", "同一按钮/操作下的接口，请求方式+资源url不能重复"),
     ;
 
     /**

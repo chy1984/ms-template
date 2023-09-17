@@ -13,11 +13,13 @@ import com.chy.xxx.ms.modules.system.vo.req.SysResourceAddReqVo;
 import com.chy.xxx.ms.modules.system.vo.req.SysResourceListReqVo;
 import com.chy.xxx.ms.modules.system.vo.req.SysResourceUpdateReqVo;
 import com.chy.xxx.ms.modules.system.vo.resp.SysResourceRespVo;
-import com.chy.xxx.ms.response.CommonResp;
+import com.chy.xxx.ms.security.DynamicSecurityMetadataSource;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -35,69 +37,104 @@ public class SysResourceServiceImpl implements SysResourceService {
     private SysResourceTxService sysResourceTxService;
     @Resource
     private SysResourceMapper sysResourceMapper;
+    @Resource
+    private DynamicSecurityMetadataSource dynamicSecurityMetadataSource;
 
     @Override
-    public CommonResp<Void> add(SysResourceAddReqVo reqVo) {
-        List<SysResourcePo> sysResourcePos = sysResourceDbService.listByQo(SysResourceQo.builder()
-                .resReqMethod(reqVo.getResReqMethod())
-                .resUrl(reqVo.getResUrl())
-                .build());
-        if (CollectionUtils.isNotEmpty(sysResourcePos)) {
-            return CommonResp.fail(MsErrorCodeEnum.RESOURCE_REQ_METHOD_AND_URL_ALREADY_EXIST);
-        }
-
-        //校验父子资源类型关联
-        validateParentResMapping(reqVo.getResType(), reqVo.getParentId());
-
+    public void add(SysResourceAddReqVo reqVo) {
         SysResourcePo sysResourcePo = sysResourceMapper.addReqVoToPo(reqVo);
+        //校验资源是否重复
+        this.validateResRepeat(sysResourcePo);
+        //校验父子资源的resType关联关系
+        validateParentResMapping(sysResourcePo.getResType(), sysResourcePo.getParentId());
+
         sysResourceDbService.save(sysResourcePo);
-        return CommonResp.success();
+        dynamicSecurityMetadataSource.reloadAllInterfaceRes();
     }
 
     @Override
-    public CommonResp<Void> update(SysResourceUpdateReqVo reqVo) {
-        SysResourcePo sysResourcePo = sysResourceDbService.getById(reqVo.getId());
-        if (sysResourcePo == null) {
-            return CommonResp.fail(MsErrorCodeEnum.SYS_RESOURCE_NOT_EXIST);
-        }
-
-        //校验父子资源类型关联
-        validateParentResMapping(reqVo.getResType(), reqVo.getParentId());
+    public void update(SysResourceUpdateReqVo reqVo) {
+        Long id = reqVo.getId();
+        SysResourcePo sysResourcePo = sysResourceDbService.getById(id);
+        RtBizAssert.assertNotNull(sysResourcePo, MsErrorCodeEnum.SYS_RESOURCE_NOT_EXIST, "resId=" + id);
 
         sysResourcePo = sysResourceMapper.updateReqVoToPo(reqVo);
+        //校验资源是否重复
+        this.validateResRepeat(sysResourcePo);
+        //校验父子资源的resType关联关系
+        this.validateParentResMapping(sysResourcePo.getResType(), sysResourcePo.getParentId());
+
         sysResourceDbService.updateById(sysResourcePo);
-        return CommonResp.success();
+        dynamicSecurityMetadataSource.reloadAllInterfaceRes();
     }
 
     @Override
-    public CommonResp<Void> delete(Long id) {
+    public void delete(Long id) {
         SysResourcePo sysResourcePo = sysResourceDbService.getById(id);
-        if (sysResourcePo == null) {
-            return CommonResp.fail(MsErrorCodeEnum.SYS_RESOURCE_NOT_EXIST);
-        }
+        RtBizAssert.assertNotNull(sysResourcePo, MsErrorCodeEnum.SYS_RESOURCE_NOT_EXIST, "resId=" + id);
+
         //有子资源时不能删除
         List<SysResourcePo> subResourcePos = sysResourceDbService.listByQo(SysResourceQo.builder()
                 .parentId(id)
                 .build());
-        if (CollectionUtils.isNotEmpty(subResourcePos)) {
-            return CommonResp.fail(MsErrorCodeEnum.CANNOT_DELETE_RESOURCE_WITH_SUB_RESOURCES);
-        }
+        RtBizAssert.assertEmpty(subResourcePos, MsErrorCodeEnum.CANNOT_DELETE_RESOURCE_WITH_SUB_RESOURCES, "resId=" + id);
 
         sysResourceTxService.deleteResource(id);
-        return CommonResp.success();
+        dynamicSecurityMetadataSource.reloadAllInterfaceRes();
     }
 
     @Override
-    public CommonResp<List<SysResourceRespVo>> list(SysResourceListReqVo reqVo) {
+    public List<SysResourceRespVo> list(SysResourceListReqVo reqVo) {
         SysResourceQo sysResourceQo = sysResourceMapper.listReqVoToQo(reqVo);
         List<SysResourcePo> sysResourcePos = sysResourceDbService.listByQo(sysResourceQo);
-        List<SysResourceRespVo> resourceRespVos = sysResourceMapper.posToRespVos(sysResourcePos);
-        return CommonResp.success(resourceRespVos);
+        return sysResourceMapper.posToRespVos(sysResourcePos);
     }
 
+    /**
+     * 校验资源是否重复
+     *
+     * @param sysResourcePo 资源信息
+     */
+    private void validateResRepeat(SysResourcePo sysResourcePo) {
+        SysResourceTypeEnum enumByResType = SysResourceTypeEnum.getEnumByResType(sysResourcePo.getResType());
+        Long id = sysResourcePo.getId();
+        String resUrl = sysResourcePo.getResUrl();
+        String resReqMethod = sysResourcePo.getResReqMethod();
+
+        //菜单、操作/按钮的 resUrl 不能重复
+        if (SysResourceTypeEnum.MENU.equals(enumByResType) || SysResourceTypeEnum.OPERATION.equals(enumByResType)) {
+            List<SysResourcePo> sysResourcePos = sysResourceDbService.listByQo(SysResourceQo.builder()
+                    .resTypes(Arrays.asList(SysResourceTypeEnum.MENU.getResType(), SysResourceTypeEnum.OPERATION.getResType()))
+                    .resUrl(resUrl)
+                    .build());
+            //通过 id==null 判断是新增还是更新
+            boolean result = id == null ? CollectionUtils.isEmpty(sysResourcePos) : sysResourcePos.size() <= 1;
+            RtBizAssert.assertTrue(result, MsErrorCodeEnum.SYS_MENU_AND_RESOURCE_URL_NOT_REPEAT, "resUrl=" + resUrl);
+        }
+
+        //同一父资源下的接口，resReqMethod + resUrl 不能重复
+        if (SysResourceTypeEnum.INTERFACE.equals(enumByResType)) {
+            List<SysResourcePo> sysResourcePos = sysResourceDbService.listByQo(SysResourceQo.builder()
+                    .resTypes(Collections.singletonList(SysResourceTypeEnum.INTERFACE.getResType()))
+                    .parentId(sysResourcePo.getParentId())
+                    .resReqMethod(resReqMethod)
+                    .resUrl(resUrl)
+                    .build());
+            boolean result = id == null ? CollectionUtils.isEmpty(sysResourcePos) : sysResourcePos.size() <= 1;
+            RtBizAssert.assertTrue(result, MsErrorCodeEnum.SYS_INTERFACE_REQ_METHOD_AND_URL_NOT_REPEAT,
+                    String.format("resReqMethod=%s，resUrl=%s", resReqMethod, resUrl));
+        }
+    }
+
+    /**
+     * 校验父子资源的resType关联关系
+     *
+     * @param resType     资源类型
+     * @param parentResId 父子源id
+     */
     private void validateParentResMapping(Integer resType, Long parentResId) {
         Integer parentResType = null;
-        if (parentResId != null) {
+        if (parentResId != null && parentResId != 0) {
             SysResourcePo parentResourcePo = sysResourceDbService.getById(parentResId);
             parentResType = parentResourcePo.getResType();
         }

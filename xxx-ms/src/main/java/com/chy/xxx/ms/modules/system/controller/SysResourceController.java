@@ -39,7 +39,8 @@ public class SysResourceController {
     @PostMapping("/v1/system/resources")
     @OperationLog("添加系统资源")
     public CommonResp<Void> add(@Valid @RequestBody SysResourceAddReqVo reqVo) {
-        return sysResourceService.add(reqVo);
+        sysResourceService.add(reqVo);
+        return CommonResp.success();
     }
 
     @ApiOperation("更新系统资源")
@@ -47,7 +48,8 @@ public class SysResourceController {
     @PutMapping("/v1/system/resources")
     @OperationLog("更新系统资源")
     public CommonResp<Void> update(@Valid @RequestBody SysResourceUpdateReqVo reqVo) {
-        return sysResourceService.update(reqVo);
+        sysResourceService.update(reqVo);
+        return CommonResp.success();
     }
 
     @ApiOperation("删除系统资源")
@@ -55,7 +57,8 @@ public class SysResourceController {
     @DeleteMapping("/v1/system/resources/{id}")
     @OperationLog("删除系统资源")
     public CommonResp<Void> delete(@PathVariable("id") Long id) {
-        return sysResourceService.delete(id);
+        sysResourceService.delete(id);
+        return CommonResp.success();
     }
 
     @ApiOperation("查询系统资源列表")
@@ -63,7 +66,7 @@ public class SysResourceController {
     @GetMapping("/v1/system/resources/list")
     @OperationLog(value = "查询系统资源列表", saveRespData = false)
     public CommonResp<List<SysResourceRespVo>> list(@Valid SysResourceListReqVo reqVo) {
-        return sysResourceService.list(reqVo);
+        return CommonResp.success(sysResourceService.list(reqVo));
     }
 
 }

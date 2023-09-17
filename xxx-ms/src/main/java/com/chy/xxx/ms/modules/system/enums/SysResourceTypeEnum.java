@@ -1,6 +1,8 @@
 package com.chy.xxx.ms.modules.system.enums;
 
+import com.chy.xxx.ms.enums.MsErrorCodeEnum;
 import com.chy.xxx.ms.exception.RtBizAssert;
+import com.chy.xxx.ms.exception.ServiceRuntimeException;
 import com.google.common.collect.ImmutableMap;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -36,6 +38,21 @@ public enum SysResourceTypeEnum {
      * 描述
      */
     private final String desc;
+
+    /**
+     * 根据 resType 获取枚举
+     *
+     * @param resType 资源类型code
+     * @return SysResourceTypeEnum
+     */
+    public static SysResourceTypeEnum getEnumByResType(Integer resType) {
+        for (SysResourceTypeEnum resourceTypeEnum : values()) {
+            if (resourceTypeEnum.resType.equals(resType)) {
+                return resourceTypeEnum;
+            }
+        }
+        throw new ServiceRuntimeException(MsErrorCodeEnum.SYS_RESOURCE_TYPE_ERROR, "resType=" + resType);
+    }
 
     public static final ImmutableMap<Integer, List<Integer>> ALLOW_PARENT_RES_MAPPING = ImmutableMap.<Integer, List<Integer>>builder()
             .put(MENU.resType, Arrays.asList(MENU.resType, null, 0))

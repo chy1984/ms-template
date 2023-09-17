@@ -2,6 +2,7 @@ package com.chy.xxx.ms.modules.system.service.business.impl;
 
 import com.chy.xxx.ms.component.JwtTokenService;
 import com.chy.xxx.ms.enums.MsErrorCodeEnum;
+import com.chy.xxx.ms.exception.RtBizAssert;
 import com.chy.xxx.ms.modules.system.bo.SysUserResourceBo;
 import com.chy.xxx.ms.modules.system.cache.SysUserResourceCacheService;
 import com.chy.xxx.ms.modules.system.enums.SysUserStatusEnum;
@@ -24,7 +25,6 @@ import com.chy.xxx.ms.modules.system.vo.resp.SysUserTokenRespVo;
 import com.chy.xxx.ms.properties.JwtTokenProperties;
 import com.chy.xxx.ms.request.RequestContextHolder;
 import com.chy.xxx.ms.response.CommonPage;
-import com.chy.xxx.ms.response.CommonResp;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.page.PageMethod;
 import org.apache.commons.collections4.CollectionUtils;
@@ -69,74 +69,66 @@ public class SysUserServiceImpl implements SysUserService {
     private SysUserProperties sysUserProperties;
 
     @Override
-    public CommonResp<SysUserTokenRespVo> login(SysUserLoginReqVo reqVo) {
+    public SysUserTokenRespVo login(SysUserLoginReqVo reqVo) {
         String username = reqVo.getUsername();
         //密码需要客户端加密后传递
         List<SysUserPo> sysUserPos = sysUserDbService.listByQo(SysUserQo.builder()
                 .username(username)
                 .build());
-        if (CollectionUtils.isEmpty(sysUserPos)) {
-            return CommonResp.fail(MsErrorCodeEnum.SYS_USER_NOT_EXIST, null);
-        }
+        RtBizAssert.assertNotEmpty(sysUserPos, MsErrorCodeEnum.SYS_USER_NOT_EXIST, "username=" + username);
+
         SysUserPo sysUserPo = sysUserPos.get(0);
-        if (!passwordEncoder.matches(reqVo.getPassword(), sysUserPo.getPassword())) {
-            return CommonResp.fail(MsErrorCodeEnum.USERNAME_OR_PASSWORD_ERROR, null);
-        }
-        if (SysUserStatusEnum.DISABLED.getStatus().equals(sysUserPo.getStatus())) {
-            return CommonResp.fail(MsErrorCodeEnum.SYS_USER_DISABLED, null);
-        }
+        RtBizAssert.assertTrue(passwordEncoder.matches(reqVo.getPassword(), sysUserPo.getPassword()),
+                MsErrorCodeEnum.USERNAME_OR_PASSWORD_ERROR, "username=" + username);
+
+        RtBizAssert.assertFalse(SysUserStatusEnum.DISABLED.getStatus().equals(sysUserPo.getStatus()),
+                MsErrorCodeEnum.SYS_USER_DISABLED, "username=" + username);
 
         //请求上下文回填用户信息
         RequestContextHolder.setUserInfo(sysUserPo.getUsername(), sysUserPo.getRealName());
 
         String token = jwtTokenService.generateToken(sysUserPo);
-        SysUserTokenRespVo respVo = SysUserTokenRespVo.builder()
+        return SysUserTokenRespVo.builder()
                 .token(token)
                 .tokenPrefix(jwtTokenProperties.getPrefix())
                 .build();
-        return CommonResp.success(respVo);
     }
 
     @Override
-    public CommonResp<Void> logout(String username) {
+    public void logout(String username) {
         //更新角色、资源时没清除用户资源缓存，把登出作为缓存清除触发点，更新资源、角色配置后，可以让用户重新登录以拉取最新的、有权限的资源列表
         sysUserResourceCacheService.removeUserResourceCache(username);
-        return CommonResp.success();
     }
 
     @Override
-    public CommonResp<SysUserDetailRespVo> getUserDetail(String username) {
+    public SysUserDetailRespVo getUserDetail(String username) {
         SysUserResourceBo sysUserResourceBo = sysUserResourceCacheService.getUseResourceCache(username);
         List<SysResourceRespVo> menuList = sysResourceMapper.posToRespVos(sysUserResourceBo.getMenuList());
         List<SysResourceRespVo> operationList = sysResourceMapper.posToRespVos(sysUserResourceBo.getOperationList());
-        SysUserDetailRespVo respVo = SysUserDetailRespVo.builder()
+        return SysUserDetailRespVo.builder()
                 .username(sysUserResourceBo.getUsername())
                 .realName(sysUserResourceBo.getRealName())
                 .menuList(menuList)
                 .operationList(operationList)
                 .build();
-        return CommonResp.success(respVo);
     }
 
     @Override
-    public CommonResp<SysUserTokenRespVo> refreshToken(String token) {
+    public SysUserTokenRespVo refreshToken(String token) {
         token = jwtTokenService.refreshToken(token);
-        SysUserTokenRespVo sysUserTokenRespVo = SysUserTokenRespVo.builder()
+        return SysUserTokenRespVo.builder()
                 .token(token)
                 .tokenPrefix(jwtTokenProperties.getPrefix())
                 .build();
-        return CommonResp.success(sysUserTokenRespVo);
     }
 
     @Override
-    public CommonResp<Void> add(SysUserAddReqVo reqVo) {
+    public void add(SysUserAddReqVo reqVo) {
         String username = reqVo.getUsername();
         List<SysUserPo> sysUserPos = sysUserDbService.listByQo(SysUserQo.builder()
                 .username(username)
                 .build());
-        if (CollectionUtils.isNotEmpty(sysUserPos)) {
-            return CommonResp.fail(MsErrorCodeEnum.USERNAME_ALREADY_EXIST);
-        }
+        RtBizAssert.assertEmpty(sysUserPos, MsErrorCodeEnum.USERNAME_ALREADY_EXIST, "username=" + username);
 
         SysUserPo sysUserPo = sysUserMapper.addReqVoToPo(reqVo);
         String defaultPassword = passwordEncoder.encode(sysUserProperties.getDefaultPassword());
@@ -148,16 +140,13 @@ public class SysUserServiceImpl implements SysUserService {
 
         sysUserTxService.addUser(sysUserPo, sysUserRolePos);
         sysUserResourceCacheService.removeUserResourceCache(username);
-        return CommonResp.success();
     }
 
     @Override
-    public CommonResp<Void> update(SysUserUpdateReqVo reqVo) {
+    public void update(SysUserUpdateReqVo reqVo) {
         Long userId = reqVo.getId();
         SysUserPo sysUserPo = sysUserDbService.getById(userId);
-        if (sysUserPo == null) {
-            return CommonResp.fail(MsErrorCodeEnum.SYS_USER_NOT_EXIST);
-        }
+        RtBizAssert.assertNotNull(sysUserPo, MsErrorCodeEnum.SYS_USER_NOT_EXIST, "userId=" + userId);
 
         SysUserPo sysUserUpdatePo = sysUserMapper.updateReqVoToPo(reqVo);
         ArrayList<SysUserRolePo> sysUserRoleInsertPos = new ArrayList<>();
@@ -168,21 +157,17 @@ public class SysUserServiceImpl implements SysUserService {
 
         sysUserTxService.updateUser(sysUserUpdatePo, sysUserRoleInsertPos);
         sysUserResourceCacheService.removeUserResourceCache(sysUserPo.getUsername());
-        return CommonResp.success();
     }
 
     @Override
-    public CommonResp<Void> delete(Long id) {
+    public void delete(Long id) {
         SysUserPo sysUserPo = sysUserDbService.getById(id);
-        if (sysUserPo == null) {
-            return CommonResp.fail(MsErrorCodeEnum.SYS_USER_NOT_EXIST);
-        }
+        RtBizAssert.assertNotNull(sysUserPo, MsErrorCodeEnum.SYS_USER_NOT_EXIST, "userId=" + id);
         sysUserTxService.deleteUser(id);
-        return CommonResp.success();
     }
 
     @Override
-    public CommonResp<CommonPage<SysUserPageRespVo>> page(SysUserPageReqVo reqVo) {
+    public CommonPage<SysUserPageRespVo> page(SysUserPageReqVo reqVo) {
         //通过roleId置换出userId
         List<Long> userIds = Collections.emptyList();
         if (reqVo.getRoleId() != null) {
@@ -190,7 +175,7 @@ public class SysUserServiceImpl implements SysUserService {
                     .roleId(reqVo.getRoleId())
                     .build());
             if (CollectionUtils.isEmpty(sysUserRolePos)) {
-                return CommonResp.success(CommonPage.empty());
+                return CommonPage.empty();
             }
             userIds = sysUserRolePos.stream()
                     .map(SysUserRolePo::getUserId)
@@ -203,7 +188,7 @@ public class SysUserServiceImpl implements SysUserService {
         sysUserQo.setIds(userIds);
         List<SysUserPo> sysUserPos = sysUserDbService.listByQo(sysUserQo);
         if (CollectionUtils.isEmpty(sysUserPos)) {
-            return CommonResp.success(CommonPage.empty());
+            return CommonPage.empty();
         }
 
         //查询用户-角色关联信息
@@ -220,15 +205,13 @@ public class SysUserServiceImpl implements SysUserService {
         List<SysUserPageRespVo> respVos = sysUserMapper.posToPageRespVos(sysUserPos);
         respVos.forEach(respVo -> respVo.setRoleIds(sysUserRolesMap.get(respVo.getId())));
 
-        return CommonResp.success(CommonPage.restPage(page, respVos));
+        return CommonPage.restPage(page, respVos);
     }
 
     @Override
-    public CommonResp<Void> resetPassword(Long id) {
+    public void resetPassword(Long id) {
         SysUserPo sysUserPo = sysUserDbService.getById(id);
-        if (sysUserPo == null) {
-            return CommonResp.fail(MsErrorCodeEnum.SYS_USER_NOT_EXIST);
-        }
+        RtBizAssert.assertNotNull(sysUserPo, MsErrorCodeEnum.SYS_USER_NOT_EXIST, "userId=" + id);
 
         String newPassword = passwordEncoder.encode(sysUserProperties.getDefaultPassword());
         sysUserDbService.updateById(SysUserPo.builder()
@@ -236,19 +219,17 @@ public class SysUserServiceImpl implements SysUserService {
                 .password(newPassword)
                 .build());
         sysUserResourceCacheService.removeUserResourceCache(sysUserPo.getUsername());
-        return CommonResp.success();
     }
 
     @Override
-    public CommonResp<Void> updatePassword(SysUserUpdatePasswordReqVo reqVo) {
+    public void updatePassword(SysUserUpdatePasswordReqVo reqVo) {
         String username = RequestContextHolder.getRequestContext().getUsername();
         List<SysUserPo> sysUserPos = sysUserDbService.listByQo(SysUserQo.builder()
                 .username(username)
                 .build());
         SysUserPo sysUserPo = sysUserPos.get(0);
-        if (!passwordEncoder.matches(reqVo.getOldPassword(), sysUserPo.getPassword())) {
-            return CommonResp.fail(MsErrorCodeEnum.OLD_PASSWORD_ERROR);
-        }
+        RtBizAssert.assertTrue(passwordEncoder.matches(reqVo.getOldPassword(), sysUserPo.getPassword()),
+                MsErrorCodeEnum.OLD_PASSWORD_ERROR, "username=" + username);
 
         String newPassword = passwordEncoder.encode(reqVo.getNewPassword());
         sysUserDbService.updateById(SysUserPo.builder()
@@ -256,7 +237,6 @@ public class SysUserServiceImpl implements SysUserService {
                 .password(newPassword)
                 .build());
         sysUserResourceCacheService.removeUserResourceCache(username);
-        return CommonResp.success();
     }
 
 }
