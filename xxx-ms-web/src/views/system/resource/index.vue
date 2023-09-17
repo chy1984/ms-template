@@ -60,9 +60,11 @@
           >
             添加子资源
           </el-button>
-          <el-button type="danger" size="small" :disabled="row.children!==undefined" @click="handleDelete(row)">
-            删除
-          </el-button>
+          <el-tooltip :disabled="row.children===undefined" effect="dark" content="有子资源，不能被删除" placement="top">
+            <el-button type="danger" size="small" :disabled="row.children!==undefined" @click="handleDelete(row)">
+              删除
+            </el-button>
+          </el-tooltip>
         </template>
       </el-table-column>
     </el-table>
@@ -102,10 +104,11 @@
         <el-form-item label="排序号" prop="seq">
           <el-input v-model="saveResourceForm.seq" type="number" clearable placeholder="数值越小 展示越靠前"/>
         </el-form-item>
-        <el-form-item label="状态" prop="status">
+        <el-form-item label="资源状态" prop="status">
           <el-select v-model="saveResourceForm.status" clearable placeholder="请选择状态">
             <el-option v-for="item in resStatusEnum" :key="item.status" :label="item.desc" :value="item.status"/>
           </el-select>
+          <span class="res-status-tip">禁用即作废此条资源访问规则</span>
         </el-form-item>
         <el-form-item label="父资源" prop="parentId">
           <el-cascader v-model="saveResourceForm.parentId" ref="parentResourceCascader" class="parent-resource-cascader"
@@ -315,6 +318,13 @@ export default {
 .res-icon-input {
   width: 80%;
   margin-right: 20px;
+}
+
+.res-status-tip{
+  display: inline-block;
+  margin-left: 20px;
+  font-size: small;
+  color: red;
 }
 </style>
 

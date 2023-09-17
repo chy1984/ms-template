@@ -16,7 +16,8 @@ service.interceptors.request.use(
     // do something before request is sent
     // 如果有token，则在请求头中携带token
     if (store.getters.token) {
-      config.headers['Authorization'] = store.getters.tokenPrefix + getToken()
+      // config.headers['Authorization'] = store.getters.tokenPrefix + getToken()
+      config.headers['Authorization'] = 'Bearer ' + getToken()
     }
     return config
   },
@@ -43,7 +44,7 @@ service.interceptors.response.use(
     console.log(response.headers['refresh-token'])
 
     // 服务端提示token即将过期，则异步刷新token
-    if (response.headers['refresh-token'] && !store.getters.refreshingToken) {
+    if (response.headers['refresh-token'] && !store.getters.refreshingTokenFlag) {
       store.dispatch('user/refreshToken').then(() => {
         console.log('已刷新token')
       })

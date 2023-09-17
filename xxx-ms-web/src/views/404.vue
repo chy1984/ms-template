@@ -10,8 +10,8 @@
       <div class="bullshit">
         <div class="bullshit__oops">OOPS!</div>
         <div class="bullshit__headline">{{ message }}</div>
-        <div class="bullshit__info">Please check that the URL you entered is correct, or click the button below to return to the homepage.</div>
-        <a href="" class="bullshit__return-home">Back to home</a>
+        <div class="bullshit__info">请检查url是否正确，点击下面的按钮可回到首页</div>
+        <a href="" class="bullshit__return-home">回到首页</a>
       </div>
     </div>
   </div>
@@ -23,7 +23,7 @@ export default {
   name: 'Page404',
   computed: {
     message() {
-      return 'The webmaster said that you can not enter this page...'
+      return '资源不存在或无访问权限'
     }
   }
 }

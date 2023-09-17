@@ -9,7 +9,7 @@ const getDefaultState = () => {
   return {
     token: getToken(),
     tokenPrefix: '',
-    refreshingToken: false,
+    refreshingTokenFlag: false,
     username: '',
     realName: '',
     menuList: [],
@@ -29,8 +29,8 @@ const mutations = {
   SET_TOKEN_PREFIX: (state, tokenPrefix) => {
     state.tokenPrefix = tokenPrefix
   },
-  SET_REFRESHING_TOKEN: (state, refreshingToken) => {
-    state.refreshingToken = refreshingToken
+  SET_REFRESHING_TOKEN_FLAG: (state, refreshingTokenFlag) => {
+    state.refreshingTokenFlag = refreshingTokenFlag
   },
   SET_USERNAME: (state, username) => {
     state.username = username
@@ -85,7 +85,7 @@ const actions = {
   },
 
   async refreshToken({ commit }) {
-    commit('SET_REFRESHING_TOKEN', true)
+    commit('SET_REFRESHING_TOKEN_FLAG', true)
     return new Promise((resolve, reject) => {
       refreshToken().then(response => {
         const { data } = response
@@ -96,7 +96,7 @@ const actions = {
       }).catch(error => {
         reject(error)
       }).finally(() => {
-        commit('SET_REFRESHING_TOKEN', false)
+        commit('SET_REFRESHING_TOKEN_FLAG', false)
       })
     })
   },

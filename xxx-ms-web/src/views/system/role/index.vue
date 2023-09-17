@@ -100,7 +100,7 @@
         <el-form-item prop="resIds">
           <el-tree ref="resourceTree"
                    :data="resourceTree"
-                   :default-checked-keys="saveRoleResourceForm.resIds"
+                   :default-checked-keys="defaultCheckedLeafKeys"
                    :props="resourceTreeProps"
                    node-key="id"
                    show-checkbox
@@ -178,6 +178,7 @@ export default {
         list: []
       },
       resourceTree: [], // 资源树
+      defaultCheckedLeafKeys: [], // 默认选中的叶子资源key数组
       resourceTreeProps: {
         label: 'resName',
         children: 'children'
@@ -233,7 +234,9 @@ export default {
         status: undefined
       }
     },
-    resetSaveRoleResourceForm() {
+    resetRoleResourceForm() {
+      this.resourceTree = []
+      this.defaultCheckedLeafKeys = []
       this.saveRoleResourceForm = {
         roleId: undefined,
         resIds: []
@@ -298,7 +301,7 @@ export default {
       })
     },
     handleGrantPermission(row) {
-      this.resetSaveRoleResourceForm()
+      this.resetRoleResourceForm()
       this.saveRoleResourceForm.roleId = row.id
       this.roleResourceQuery.roleId = row.id
 
@@ -307,19 +310,24 @@ export default {
         this.resourceTree = buildResourceTree(response.data)
 
         // 加载当前角色拥有的资源
-        listRoleResource(this.roleResourceQuery).then(response => {
-          const resourceList = response.data
-          this.saveRoleResourceForm.resIds = resourceList.map((item, index, self) => item.id)
-          // 展示授权表单
-          this.saveRoleResourceFormVisible = true
+        listRoleResource(this.roleResourceQuery).then(roleResResponse => {
+          const resourceList = roleResResponse.data
+          // 过滤出具有权限的叶子节点
+          this.filterLeafResource(resourceList)
           this.$nextTick(() => {
+            // default-checked-keys 默认选中数据变化后，不会刷新UI，需要手动设置下
+            this.$refs.resourceTree.setCheckedKeys(this.defaultCheckedLeafKeys)
             this.$refs['saveRoleResourceForm'].clearValidate()
           })
+
+          // 展示授权表单
+          this.saveRoleResourceFormVisible = true
         })
       })
     },
     saveRoleResource() {
-      this.saveRoleResourceForm.resIds = this.$refs.resourceTree.getCheckedKeys()
+      // 选中的叶子节点、半选中的父节点都需要传给服务端存储
+      this.saveRoleResourceForm.resIds = this.$refs.resourceTree.getHalfCheckedKeys().concat(this.$refs.resourceTree.getCheckedKeys())
       this.$refs['saveRoleResourceForm'].validate((valid) => {
         if (valid) {
           saveRoleResource(this.saveRoleResourceForm).then(() => {
@@ -329,6 +337,27 @@ export default {
             })
           })
           this.saveRoleResourceFormVisible = false
+        }
+      })
+    },
+    filterLeafResource(resourceList) {
+      // 按parentId分组
+      const parentResourceMap = resourceList.reduce((acc, cur) => {
+        acc[cur.parentId] = acc[cur.parentId] || []
+        acc[cur.parentId].push(cur)
+        return acc
+      }, {})
+      // 从根资源（根菜单）开始，递归筛选叶子节点
+      const rootResourceList = resourceList.filter(resource => resource.parentId === 0)
+      this.filterLeafNode(rootResourceList, parentResourceMap)
+    },
+    filterLeafNode(resourceList, resourceMap) {
+      resourceList.forEach(resource => {
+        const subResourceList = resourceMap[resource.id]
+        if (subResourceList) {
+          this.filterLeafNode(subResourceList, resourceMap)
+        } else {
+          this.defaultCheckedLeafKeys.push(resource.id)
         }
       })
     }
