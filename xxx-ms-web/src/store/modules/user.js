@@ -1,48 +1,50 @@
 import { login, logout, getUserDetail, updatePassword, refreshToken } from '@/api/system/user'
-import { getToken, setToken, removeToken } from '@/utils/auth'
-import router, { resetRouter } from '@/router'
-import store from '@/store'
-import { Message } from 'element-ui'
-import NProgress from 'nprogress'
+import {
+  getToken, setToken, getUsername, setUsername, getRealName, setRealName,
+  getMenus, setMenus, getOperationResUrls, setOperationResUrls, clear
+} from '@/store/local-storage'
+import { resetRouter } from '@/router'
 
-const getDefaultState = () => {
+const getState = () => {
   return {
     token: getToken(),
-    tokenPrefix: '',
-    refreshingTokenFlag: false,
-    username: '',
-    realName: '',
-    menuList: [],
-    operationList: []
+    username: getUsername(),
+    realName: getRealName(),
+    menus: getMenus(),
+    operationResUrls: getOperationResUrls() || [],
+    refreshingTokenFlag: false
   }
 }
 
-const state = getDefaultState()
+const state = getState()
 
 const mutations = {
   RESET_STATE: (state) => {
-    Object.assign(state, getDefaultState())
+    clear()
+    Object.assign(state, getState())
   },
   SET_TOKEN: (state, token) => {
+    setToken(token)
     state.token = token
   },
-  SET_TOKEN_PREFIX: (state, tokenPrefix) => {
-    state.tokenPrefix = tokenPrefix
-  },
-  SET_REFRESHING_TOKEN_FLAG: (state, refreshingTokenFlag) => {
-    state.refreshingTokenFlag = refreshingTokenFlag
-  },
   SET_USERNAME: (state, username) => {
+    setUsername(username)
     state.username = username
   },
   SET_REAL_NAME: (state, realName) => {
+    setRealName(realName)
     state.realName = realName
   },
-  SET_MENU_LIST: (state, menuList) => {
-    state.menuList = menuList
+  SET_MENUS: (state, menus) => {
+    setMenus(menus)
+    state.menus = menus
   },
-  SET_OPERATION_LIST: (state, operationList) => {
-    state.operationList = operationList
+  SET_OPERATION_RES_URLS: (state, operationResUrls) => {
+    setOperationResUrls(operationResUrls)
+    state.operationResUrls = operationResUrls
+  },
+  SET_REFRESHING_TOKEN_FLAG: (state, refreshingTokenFlag) => {
+    state.refreshingTokenFlag = refreshingTokenFlag
   }
 }
 
@@ -52,10 +54,8 @@ const actions = {
     const { username, password } = userInfo
     return new Promise((resolve, reject) => {
       login({ username: username.trim(), password: password }).then(response => {
-        const { data } = response
-        commit('SET_TOKEN', data.token)
-        commit('SET_TOKEN_PREFIX', data.tokenPrefix)
-        setToken(data.token)
+        const { tokenPrefix, token } = response.data
+        commit('SET_TOKEN', tokenPrefix + token)
         resolve()
       }).catch(error => {
         reject(error)
@@ -73,10 +73,11 @@ const actions = {
         }
 
         const { username, realName, menuList, operationList } = data
+        const operationResUrls = operationList.map(operation => operation.resUrl)
         commit('SET_USERNAME', username)
         commit('SET_REAL_NAME', realName)
-        commit('SET_MENU_LIST', menuList)
-        commit('SET_OPERATION_LIST', operationList)
+        commit('SET_MENUS', menuList)
+        commit('SET_OPERATION_RES_URLS', operationResUrls)
         resolve(data)
       }).catch(error => {
         reject(error)
@@ -88,10 +89,8 @@ const actions = {
     commit('SET_REFRESHING_TOKEN_FLAG', true)
     return new Promise((resolve, reject) => {
       refreshToken().then(response => {
-        const { data } = response
-        commit('SET_TOKEN', data.token)
-        commit('SET_TOKEN_PREFIX', data.tokenPrefix)
-        setToken(data.token)
+        const { tokenPrefix, token } = response.data
+        commit('SET_TOKEN', tokenPrefix + token)
         resolve()
       }).catch(error => {
         reject(error)
@@ -105,8 +104,6 @@ const actions = {
   updatePassword({ commit }, data) {
     return new Promise((resolve, reject) => {
       updatePassword(data).then(() => {
-        removeToken() // must remove  token  first
-        resetRouter()
         commit('RESET_STATE')
         resolve()
       }).catch(error => {
@@ -119,9 +116,8 @@ const actions = {
   logout({ commit }) {
     return new Promise((resolve, reject) => {
       logout().then(() => {
-        removeToken() // must remove  token  first
-        resetRouter()
         commit('RESET_STATE')
+        resetRouter()
         resolve()
       }).catch(error => {
         reject(error)
@@ -129,10 +125,9 @@ const actions = {
     })
   },
 
-  // remove token
-  resetToken({ commit }) {
+  // 重置用户信息
+  resetUserInfo({ commit }) {
     return new Promise(resolve => {
-      removeToken() // must remove  token  first
       commit('RESET_STATE')
       resolve()
     })

@@ -1,4 +1,4 @@
-import { asyncRoutes, constantRoutes } from '@/router'
+import { constantRoutes, asyncRoutes } from '@/router'
 
 /**
  * Use meta.role to determine if the current user has permission
@@ -37,33 +37,35 @@ export function filterAsyncRoutes(routes, menuList) {
       if (tmp.children) {
         tmp.children = filterAsyncRoutes(tmp.children, menuList)
       }
-      // 即使只有一个子菜单也总是显示父菜单
       if (tmp.children) {
+        tmp.children.sort((res1, res2) => res1.meta.seq - res2.meta.seq)
+        // 只有一个子菜单也显示父菜单
         route.alwaysShow = true
       }
       res.push(tmp)
     }
   })
 
-  return res.sort((res1, res2) => res2.seq - res1.seq)
+  return res
 }
 
 const state = {
-  routes: [],
-  addRoutes: []
+  // null表示未挂载权限路由，[]表示已挂载但用户没有任何动态路由的权限
+  permissionRoutes: null,
+  routes: []
 }
 
 const mutations = {
-  SET_ROUTES: (state, routes) => {
-    state.addRoutes = routes
-    state.routes = constantRoutes.concat(routes)
+  SET_ROUTES: (state, permissionRoutes) => {
+    state.permissionRoutes = permissionRoutes
+    state.routes = constantRoutes.concat(permissionRoutes)
   }
 }
 
 const actions = {
-  generateRoutes({ commit }, menuList) {
+  generateRoutes({ commit }, menus) {
     return new Promise(resolve => {
-      let accessedRoutes = filterAsyncRoutes(asyncRoutes, menuList)
+      const accessedRoutes = filterAsyncRoutes(asyncRoutes, menus)
       commit('SET_ROUTES', accessedRoutes)
       resolve(accessedRoutes)
     })

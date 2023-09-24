@@ -14,15 +14,13 @@ export const permission = function(Vue) {
 
 function checkPermission(el, binding) {
   const { value } = binding
-  const operationList = store.getters && store.getters.operationList
   if (value) {
-    const resUrl = value
-    const hasPermission = operationList.some(x => x.resUrl === resUrl)
-    if (!hasPermission) {
+    const operationResUrls = store.getters && store.getters.operationResUrls
+    if (!operationResUrls.includes(value)) {
       el.parentNode && el.parentNode.removeChild(el)
     }
   } else {
-    throw new Error(`没有相关操作权限：${value}`)
+    throw new Error('v-permission属性值缺失')
   }
 }
 

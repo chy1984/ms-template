@@ -1,6 +1,6 @@
 <template>
   <div>
-    <i class="el-icon-full-screen" @click="click" />
+    <span class="el-icon-full-screen" @click="click" />
   </div>
 </template>
 
@@ -24,7 +24,7 @@ export default {
     click() {
       if (!screenfull.enabled) {
         this.$message({
-          message: 'you browser can not work',
+          message: '您的浏览器不支持全屏',
           type: 'warning'
         })
         return false

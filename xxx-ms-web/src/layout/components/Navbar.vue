@@ -1,19 +1,19 @@
 <template>
   <div class="navbar">
-    <hamburger :is-active="sidebar.opened" class="hamburger-container" @toggleClick="toggleSideBar"/>
+    <hamburger :is-active="sidebar.opened" class="hamburger-container" @toggleClick="toggleSideBar" />
 
     <breadcrumb class="breadcrumb-container"/>
 
     <!-- 右上角菜单 -->
     <div class="right-menu">
       <template v-if="device!=='mobile'">
-        <screenfull id="screenfull" class="right-menu-item hover-effect"/>
+        <screenfull id="screenfull" class="right-menu-item hover-effect" />
       </template>
 
       <el-dropdown class="avatar-container" trigger="click">
         <div class="avatar-wrapper">
-          <img src="@/assets/images/avatar.gif" class="user-avatar">
-          <i class="el-icon-caret-bottom"/>
+          <img src="@/assets/images/avatar.gif" class="user-avatar" alt="avatar" />
+          <span class="el-icon-caret-bottom" />
         </div>
         <el-dropdown-menu slot="dropdown" class="user-dropdown">
           <router-link to="/">

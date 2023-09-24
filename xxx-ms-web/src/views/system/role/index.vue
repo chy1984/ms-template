@@ -8,8 +8,11 @@
       </el-form-item>
       <el-form-item label="状态">
         <el-select v-model="roleQuery.status" clearable>
-          <el-option v-for="item in roleStatusEnum" :key="item['status']" :label="item['desc']"
-                     :value="item['status']"
+          <el-option
+            v-for="item in roleStatusEnum"
+            :key="item.status"
+            :label="item.desc"
+            :value="item.status"
           />
         </el-select>
       </el-form-item>
@@ -21,7 +24,7 @@
     </el-form>
 
     <!-- 内容表格 -->
-    <el-table v-loading="listLoading" :data="rolePage.list" border fit highlight-current-row style="width: 100%">
+    <el-table v-loading="listLoading" :data="rolePage.list" border fit highlight-current-row class="width-full">
       <el-table-column label="角色名称" align="center" width="200">
         <template slot-scope="{row}">
           <span>{{ row.roleName }}</span>
@@ -36,22 +39,25 @@
       </el-table-column>
       <el-table-column label="包含用户" align="center">
         <template slot-scope="{row}">
-          <el-tag v-if="row.sysUserList" v-for="sysUser of row.sysUserList" :key="sysUser.username">
+          <el-tag v-for="sysUser in row.sysUserList" :key="sysUser.username">
             {{ `${sysUser.username}_${sysUser.realName}` }}
           </el-tag>
         </template>
       </el-table-column>
       <el-table-column label="操作" align="center" width="220">
         <template slot-scope="{row}">
-          <el-button v-permission="roleOperation.edit" @click="handleEdit(row)" type="primary" size="small">
+          <el-button v-permission="roleOperation.edit" type="primary" size="small" @click="handleEdit(row)">
             编辑
           </el-button>
-          <el-button v-permission="roleOperation.grantPermission" @click="handleGrantPermission(row)"
-                     type="warning" size="small"
+          <el-button
+            v-permission="roleOperation.grantPermission"
+            type="warning"
+            size="small"
+            @click="handleGrantPermission(row)"
           >
             授权
           </el-button>
-          <el-button v-permission="roleOperation.delete" @click="handleDelete(row)" type="danger" size="small">
+          <el-button v-permission="roleOperation.delete" type="danger" size="small" @click="handleDelete(row)">
             删除
           </el-button>
         </template>
@@ -73,16 +79,24 @@
 
     <!-- 添加、编辑表单 -->
     <el-dialog :title="isEditRole ? '编辑系统角色' : '添加系统角色'" :visible.sync="saveRoleFormVisible">
-      <el-form ref="roleForm" :rules="saveRoleRules" :model="saveRoleForm" label-position="left" label-width="80px"
-               style="width: 500px; margin-left:50px;"
+      <el-form
+        ref="roleForm"
+        :rules="saveRoleRules"
+        :model="saveRoleForm"
+        label-position="left"
+        label-width="80px"
+        class="edit-dialog"
       >
         <el-form-item label="角色名称" prop="roleName">
           <el-input v-model="saveRoleForm.roleName" clearable placeholder="2~50个字符"/>
         </el-form-item>
         <el-form-item label="状态" prop="status">
           <el-select v-model="saveRoleForm.status" clearable placeholder="请选择状态">
-            <el-option v-for="item in roleStatusEnum" :key="item['status']" :label="item['desc']"
-                       :value="item['status']"
+            <el-option
+              v-for="item in roleStatusEnum"
+              :key="item.status"
+              :label="item.desc"
+              :value="item.status"
             />
           </el-select>
         </el-form-item>
@@ -99,14 +113,23 @@
 
     <!-- 角色授权表单 -->
     <el-dialog title="系统角色授权" :visible.sync="saveRoleResourceFormVisible">
-      <el-form ref="saveRoleResourceForm" :rules="saveRoleResourceRules" :model="saveRoleResourceForm"
-               label-position="left" label-width="80px" style="width: 500px; margin-left:50px;"
+      <el-form
+        ref="saveRoleResourceForm"
+        :rules="saveRoleResourceRules"
+        :model="saveRoleResourceForm"
+        label-position="left"
+        label-width="80px"
+        class="edit-dialog"
       >
         <el-form-item prop="resIds">
-          <el-tree ref="resourceTree" :data="resourceTree" :default-checked-keys="defaultCheckedLeafKeys"
-                   :props="resourceTreeProps" node-key="id" show-checkbox
-          >
-          </el-tree>
+          <el-tree
+            ref="resourceTree"
+            :data="resourceTree"
+            :default-checked-keys="defaultCheckedLeafKeys"
+            :props="resourceTreeProps"
+            node-key="id"
+            show-checkbox
+          />
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
@@ -128,7 +151,7 @@ import {
 } from '@/api/system/role'
 import { listResource, resTypeEnum, buildResourceTree } from '@/api/system/resource'
 import { roleNameValidator } from '@/api/system/validator'
-import { operationList } from '@/directive/permission/operation-list'
+import { operationResUrls } from '@/directive/permission/operation-res-urls'
 
 // 枚举转换为map，key是status
 const roleStatusMap = Object.values(roleStatusEnum).reduce((acc, cur) => {
@@ -142,7 +165,7 @@ export default {
     return {
       roleStatusEnum: roleStatusEnum,
       roleStatusMap: roleStatusMap,
-      roleOperation: operationList.system.role,
+      roleOperation: operationResUrls.system.role,
       isEditRole: false,
       listLoading: true,
       roleQuery: {
@@ -362,6 +385,13 @@ export default {
 </script>
 
 <style scoped>
+.width-full {
+  width: 100%;
+}
 
+.edit-dialog {
+  width: 500px;
+  margin-left: 50px;
+}
 </style>
 

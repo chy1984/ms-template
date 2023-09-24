@@ -4,27 +4,30 @@
     <!-- 搜索表单 -->
     <el-form :inline="true" :model="userQuery" size="small">
       <el-form-item label="用户名">
-        <el-input v-model="userQuery.username" clearable/>
+        <el-input v-model="userQuery.username" clearable />
       </el-form-item>
       <el-form-item label="真实姓名">
-        <el-input v-model="userQuery.realName" clearable/>
+        <el-input v-model="userQuery.realName" clearable />
       </el-form-item>
       <el-form-item label="手机号">
-        <el-input v-model="userQuery.tel" clearable/>
+        <el-input v-model="userQuery.tel" clearable />
       </el-form-item>
       <el-form-item label="邮箱">
-        <el-input v-model="userQuery.email" clearable style="width: 300px;"/>
+        <el-input v-model="userQuery.email" clearable />
       </el-form-item>
       <el-form-item label="状态">
         <el-select v-model="userQuery.status" clearable>
-          <el-option v-for="item in userStatusEnum" :key="item['status']" :label="item['desc']"
-                     :value="item['status']"
+          <el-option
+            v-for="item in userStatusEnum"
+            :key="item.status"
+            :label="item.desc"
+            :value="item.status"
           />
         </el-select>
       </el-form-item>
       <el-form-item label="角色">
-        <el-select v-model="userQuery.roleId" class="dialog-role-select" clearable filterable>
-          <el-option v-for="role in roleList" :key="role['id']" :label="role['roleName']" :value="role['id']"/>
+        <el-select v-model="userQuery.roleId" class="width-full" clearable filterable>
+          <el-option v-for="role in roleList" :key="role.id" :label="role.roleName" :value="role.id" />
         </el-select>
       </el-form-item>
       <el-form-item>
@@ -35,7 +38,7 @@
     </el-form>
 
     <!-- 内容表格 -->
-    <el-table v-loading="listLoading" :data="userPage.list" border fit highlight-current-row style="width: 100%">
+    <el-table v-loading="listLoading" :data="userPage.list" border fit highlight-current-row class="width-full">
       <el-table-column label="用户名" align="center" width="150">
         <template slot-scope="{row}">
           <span>{{ row.username }}</span>
@@ -65,22 +68,25 @@
       </el-table-column>
       <el-table-column label="角色" align="center">
         <template slot-scope="{row}">
-          <el-tag v-if="row.roleIds" v-for="roleId of row.roleIds" :key="roleId">
-            {{ roleMap[roleId]['roleName'] }}
+          <el-tag v-for="roleId in row.roleIds" :key="roleId">
+            {{ roleMap[roleId].roleName }}
           </el-tag>
         </template>
       </el-table-column>
       <el-table-column label="操作" align="center" width="240">
         <template slot-scope="{row}">
-          <el-button v-permission="userOperation.edit" @click="handleEdit(row)" type="primary" size="small">
+          <el-button v-permission="userOperation.edit" type="primary" size="small" @click="handleEdit(row)">
             编辑
           </el-button>
-          <el-button v-permission="userOperation.resetPassword" @click="handleResetPassword(row)" type="warning"
-                     size="small"
+          <el-button
+            v-permission="userOperation.resetPassword"
+            type="warning"
+            size="small"
+            @click="handleResetPassword(row)"
           >
             重置密码
           </el-button>
-          <el-button v-permission="userOperation.delete" @click="handleDelete(row)" type="danger" size="small">
+          <el-button v-permission="userOperation.delete" type="danger" size="small" @click="handleDelete(row)">
             删除
           </el-button>
         </template>
@@ -108,32 +114,40 @@
         :model="saveUserForm"
         label-position="left"
         label-width="80px"
-        style="width: 500px; margin-left:50px;"
+        class="edit-dialog"
       >
         <el-form-item label="用户名" prop="username">
-          <el-input v-model="saveUserForm.username" :disabled="isEdit" clearable placeholder="只能包含英文、数字、下划线，2~50个字符"/>
+          <el-input v-model="saveUserForm.username" :disabled="isEdit" clearable placeholder="只能包含英文、数字、下划线，2~50个字符" />
         </el-form-item>
         <el-form-item label="真实姓名" prop="realName">
-          <el-input v-model="saveUserForm.realName" :disabled="isEdit" clearable placeholder="只能包含中英文、空格、点号，2~50个字符"/>
+          <el-input v-model="saveUserForm.realName" :disabled="isEdit" clearable placeholder="只能包含中英文、空格、点号，2~50个字符" />
         </el-form-item>
         <el-form-item label="手机号" prop="tel">
-          <el-input v-model="saveUserForm.tel" type="tel" clearable/>
+          <el-input v-model="saveUserForm.tel" type="tel" clearable />
         </el-form-item>
         <el-form-item label="邮箱" prop="email">
-          <el-input v-model="saveUserForm.email" type="email" clearable/>
+          <el-input v-model="saveUserForm.email" type="email" clearable />
         </el-form-item>
         <el-form-item label="状态" prop="status">
           <el-select v-model="saveUserForm.status" clearable placeholder="请选择状态">
-            <el-option v-for="item in userStatusEnum" :key="item['status']" :label="item['desc']"
-                       :value="item['status']"
+            <el-option
+              v-for="item in userStatusEnum"
+              :key="item.status"
+              :label="item.desc"
+              :value="item.status"
             />
           </el-select>
         </el-form-item>
         <el-form-item label="角色" prop="roleIds">
-          <el-select v-model="saveUserForm.roleIds" clearable multiple filterable class="dialog-role-select"
-                     placeholder="请选择1个或多个角色"
+          <el-select
+            v-model="saveUserForm.roleIds"
+            clearable
+            multiple
+            filterable
+            class="width-full"
+            placeholder="请选择1个或多个角色"
           >
-            <el-option v-for="role in roleList" :key="role['id']" :label="role['roleName']" :value="role['id']"/>
+            <el-option v-for="role in roleList" :key="role.id" :label="role.roleName" :value="role.id" />
           </el-select>
         </el-form-item>
       </el-form>
@@ -154,7 +168,7 @@
 import { pageUser, addUser, updateUser, deleteUser, resetPassword, userStatusEnum } from '@/api/system/user'
 import { pageRole } from '@/api/system/role'
 import { usernameValidator, realNameValidator, telValidator } from '@/api/system/validator'
-import { operationList } from '@/directive/permission/operation-list'
+import { operationResUrls } from '@/directive/permission/operation-res-urls'
 
 // 枚举转换为map，key是status
 const userStatusMap = Object.values(userStatusEnum).reduce((acc, cur) => {
@@ -168,7 +182,7 @@ export default {
     return {
       userStatusEnum: userStatusEnum,
       userStatusMap: userStatusMap,
-      userOperation: operationList.system.user,
+      userOperation: operationResUrls.system.user,
       isEdit: false,
       listLoading: true,
       userQuery: {
@@ -347,8 +361,13 @@ export default {
 </script>
 
 <style scoped>
-.dialog-role-select {
+.width-full {
   width: 100%;
+}
+
+.edit-dialog {
+  width: 500px;
+  margin-left: 50px;
 }
 </style>
 

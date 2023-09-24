@@ -1,7 +1,12 @@
 <template>
   <div class="login-container">
-    <el-form ref="loginForm" :model="loginForm" :rules="loginRules" class="login-form" auto-complete="on"
-             label-position="left"
+    <el-form
+      ref="loginForm"
+      :model="loginForm"
+      :rules="loginRules"
+      class="login-form"
+      auto-complete="on"
+      label-position="left"
     >
 
       <div class="title-container">
@@ -43,13 +48,17 @@
         </span>
       </el-form-item>
 
-      <el-button :loading="loading" type="primary" style="width:100%;margin-bottom:30px;"
-                 @click.native.prevent="handleLogin"
-      >Login
+      <el-button
+        :loading="loading"
+        type="primary"
+        class="login-btn"
+        @click.native.prevent="handleLogin"
+      >
+        登录
       </el-button>
 
       <div class="tips">
-        <span style="margin-right:20px;">如有问题，请联系 chy chy@xxx.com</span>
+        <span>如有问题，请联系 xxx xxx@xx.com</span>
       </div>
 
     </el-form>
@@ -58,14 +67,16 @@
 
 <script>
 import { usernameValidator, passwordValidator } from '@/api/system/validator'
+import store from '@/store'
+import router from '@/router'
 
 export default {
   name: 'Login',
   data() {
     return {
       loginForm: {
-        username: 'admin',
-        password: '1234'
+        username: '',
+        password: ''
       },
       loginRules: {
         username: [{ required: true, trigger: 'blur', validator: usernameValidator }],
@@ -99,7 +110,11 @@ export default {
       this.$refs.loginForm.validate(valid => {
         if (valid) {
           this.loading = true
-          this.$store.dispatch('user/login', this.loginForm).then(() => {
+          this.$store.dispatch('user/login', this.loginForm).then(async() => {
+            // 登录成功后获取用户信息，动态挂在路由
+            const { menuList } = await store.dispatch('user/getDetail')
+            const accessRoutes = await store.dispatch('permission/generateRoutes', menuList)
+            router.addRoutes(accessRoutes)
             this.$router.push({ path: this.redirect || '/' })
           }).finally(() => {
             this.loading = false
@@ -178,9 +193,14 @@ $light_gray: #eee;
     overflow: hidden;
   }
 
+  .login-btn {
+    width: 100%;
+  }
+
   .tips {
     font-size: 14px;
     color: #fff;
+    margin-top: 30px;
     margin-bottom: 10px;
 
     span {

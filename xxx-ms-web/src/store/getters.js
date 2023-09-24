@@ -2,12 +2,12 @@ const getters = {
   sidebar: state => state.app.sidebar,
   device: state => state.app.device,
   token: state => state.user.token,
-  tokenPrefix: state => state.user.tokenPrefix,
-  refreshingTokenFlag: state => state.user.refreshingTokenFlag,
   username: state => state.user.username,
   realName: state => state.user.realName,
-  menuList: state => state.user.menuList,
-  operationList: state => state.user.operationList,
-  permission_routes: state => state.permission.routes
+  menus: state => state.user.menus,
+  operationResUrls: state => state.user.operationResUrls,
+  refreshingTokenFlag: state => state.user.refreshingTokenFlag,
+  permissionRoutes: state => state.permission.permissionRoutes,
+  routes: state => state.permission.routes
 }
 export default getters

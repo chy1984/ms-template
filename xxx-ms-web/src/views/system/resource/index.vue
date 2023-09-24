@@ -9,8 +9,14 @@
     </el-form>
 
     <!-- 内容表格 -->
-    <el-table v-loading="listLoading" :data="resourceTree" row-key="id" border fit highlight-current-row
-              style="width: 100%"
+    <el-table
+      v-loading="listLoading"
+      :data="resourceTree"
+      row-key="id"
+      border
+      fit
+      highlight-current-row
+      class="width-full"
     >
       <el-table-column label="资源名称">
         <template slot-scope="{row}">
@@ -24,7 +30,7 @@
       </el-table-column>
       <el-table-column label="资源图标" width="90">
         <template slot-scope="{row}">
-          <i v-if="row.resIcon.startsWith('el-icon-')" :class="row.resIcon"/>
+          <span v-if="row.resIcon.startsWith('el-icon-')" :class="row.resIcon"/>
           <svg-icon v-else-if="row.resIcon!==''" :icon-class="row.resIcon"/>
         </template>
       </el-table-column>
@@ -52,18 +58,24 @@
       </el-table-column>
       <el-table-column label="操作" width="250">
         <template slot-scope="{row}">
-          <el-button v-permission="resOperation.edit" @click="handleEdit(row)" type="primary" size="small">
+          <el-button v-permission="resOperation.edit" type="primary" size="small" @click="handleEdit(row)">
             编辑
           </el-button>
-          <el-button v-if="checkPermission(resOperation.add) && row.resType !== resTypeEnum.interface.resType"
-                     @click="handleAddChild(row)" type="warning" size="small"
+          <el-button
+            v-if="checkPermission(resOperation.add) && row.resType !== resTypeEnum.interface.resType"
+            type="warning"
+            size="small"
+            @click="handleAddChild(row)"
           >
             添加子资源
           </el-button>
-          <el-tooltip v-permission="resOperation.delete" :disabled="row.children===undefined"
-                      content="有子资源，不能被删除" placement="top"
+          <el-tooltip
+            v-permission="resOperation.delete"
+            :disabled="row.children===undefined"
+            content="有子资源，不能被删除"
+            placement="top"
           >
-            <el-button @click="handleDelete(row)" type="danger" size="small" :disabled="row.children!==undefined">
+            <el-button type="danger" size="small" :disabled="row.children!==undefined" @click="handleDelete(row)">
               删除
             </el-button>
           </el-tooltip>
@@ -73,34 +85,47 @@
 
     <!-- 添加、编辑表单 -->
     <el-dialog :title="isEdit ? '编辑系统资源' : '添加系统资源'" :visible.sync="saveResourceFormVisible">
-      <el-form ref="saveResourceForm" :rules="saveResourceRules" :model="saveResourceForm" label-position="left"
-               label-width="80px" style="width: 500px; margin-left:50px;"
+      <el-form
+        ref="saveResourceForm"
+        :rules="saveResourceRules"
+        :model="saveResourceForm"
+        label-position="left"
+        label-width="80px"
+        class="edit-dialog"
       >
         <el-form-item label="资源名称" prop="resName">
           <el-input v-model="saveResourceForm.resName" clearable placeholder="2~100个字符"/>
         </el-form-item>
         <el-form-item label="资源类型" prop="resType">
           <el-select v-model="saveResourceForm.resType" clearable placeholder="请选择资源类型" :disabled="isEdit">
-            <el-option v-for="item in saveFormResTypeOptions" :key="item['resType']" :label="item['desc']"
-                       :value="item['resType']"
+            <el-option
+              v-for="item in saveFormResTypeOptions"
+              :key="item.resType"
+              :label="item.desc"
+              :value="item.resType"
             />
           </el-select>
         </el-form-item>
         <el-form-item label="资源url" prop="resUrl">
           <el-input v-model="saveResourceForm.resUrl" clearable placeholder="盘符变量用*表示，2~100个字符"/>
         </el-form-item>
-        <el-form-item v-show="saveResourceForm.resType === resTypeEnum.interface.resType" label="请求方式"
-                      prop="resReqMethod"
+        <el-form-item
+          v-show="saveResourceForm.resType === resTypeEnum.interface.resType"
+          label="请求方式"
+          prop="resReqMethod"
         >
           <el-select v-model="saveResourceForm.resReqMethod" clearable placeholder="请选择请求方式">
             <el-option v-for="item in resReqMethodList" :key="item" :label="item" :value="item"/>
           </el-select>
         </el-form-item>
         <el-form-item v-show="saveResourceForm.resType === resTypeEnum.menu.resType" label="资源图标" prop="resIcon">
-          <el-input v-model="saveResourceForm.resIcon" class="res-icon-input" clearable
-                    placeholder="支持ElementUI图标、预置的svg图标"
+          <el-input
+            v-model="saveResourceForm.resIcon"
+            class="res-icon-input"
+            clearable
+            placeholder="支持ElementUI图标、预置的svg图标"
           />
-          <i v-if="saveResourceForm.resIcon.startsWith('el-icon-')" :class="saveResourceForm.resIcon"/>
+          <span v-if="saveResourceForm.resIcon.startsWith('el-icon-')" :class="saveResourceForm.resIcon"/>
           <svg-icon v-else-if="saveResourceForm.resIcon!==''" :icon-class="saveResourceForm.resIcon"/>
         </el-form-item>
         <el-form-item label="排序号" prop="seq">
@@ -108,16 +133,26 @@
         </el-form-item>
         <el-form-item label="资源状态" prop="status">
           <el-select v-model="saveResourceForm.status" clearable placeholder="请选择状态">
-            <el-option v-for="item in resStatusEnum" :key="item['status']" :label="item['desc']" :value="item['status']"
+            <el-option
+              v-for="item in resStatusEnum"
+              :key="item.status"
+              :label="item.desc"
+              :value="item.status"
             />
           </el-select>
           <span class="res-status-tip">禁用即作废此条资源访问规则</span>
         </el-form-item>
         <el-form-item label="父资源" prop="parentId">
-          <el-cascader v-model="saveResourceForm.parentId" ref="parentResourceCascader" class="parent-resource-cascader"
-                       :options="resourceTree" :props="parentResourceTreeProps" disabled clearable filterable
-          >
-          </el-cascader>
+          <el-cascader
+            ref="parentResourceCascader"
+            v-model="saveResourceForm.parentId"
+            class="width-full"
+            :options="resourceTree"
+            :props="parentResourceTreeProps"
+            disabled
+            clearable
+            filterable
+          />
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
@@ -135,11 +170,17 @@
 
 <script>
 import {
-  listResource, addResource, updateResource, deleteResource,
-  resTypeEnum, resReqMethodList, resStatusEnum, buildResourceTree
+  listResource,
+  addResource,
+  updateResource,
+  deleteResource,
+  resTypeEnum,
+  resReqMethodList,
+  resStatusEnum,
+  buildResourceTree
 } from '@/api/system/resource'
 import { resNameValidator, resUrlValidator } from '@/api/system/validator'
-import { operationList } from '@/directive/permission/operation-list'
+import { operationResUrls } from '@/directive/permission/operation-res-urls'
 
 // 枚举转换为map，key是status
 const resStatusMap = Object.values(resStatusEnum).reduce((acc, cur) => {
@@ -161,7 +202,7 @@ export default {
       resStatusEnum: resStatusEnum,
       resTypeMap: resTypeMap,
       resStatusMap: resStatusMap,
-      resOperation: operationList.system.resource,
+      resOperation: operationResUrls.system.resource,
       isEdit: false,
       listLoading: true,
       resourceQuery: {
@@ -308,8 +349,13 @@ export default {
 </script>
 
 <style scoped>
-.parent-resource-cascader {
+.width-full {
   width: 100%;
+}
+
+.edit-dialog {
+  width: 500px;
+  margin-left: 50px;
 }
 
 .res-icon-input {

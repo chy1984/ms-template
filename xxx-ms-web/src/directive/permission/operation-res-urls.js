@@ -1,5 +1,5 @@
-// 按钮/操作列表
-export const operationList = {
+// 按钮/操作的resUrl列表
+export const operationResUrls = {
   system: {
     resource: {
       list: '/system/resource/list',

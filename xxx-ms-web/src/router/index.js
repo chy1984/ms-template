@@ -67,26 +67,26 @@ export const asyncRoutes = [
     redirect: '/system/user',
     name: 'System',
     meta: {
-      title: '系统管理', icon: 'el-icon-setting', seq: 0, resUrl: '/system'
+      title: '系统管理', icon: 'el-icon-setting', resUrl: '/system'
     },
     children: [
       {
-        path: 'user',
-        name: 'User',
-        component: () => import('@/views/system/user'),
-        meta: { title: '用户管理', seq: 0, resUrl: '/system/user' }
+        path: 'resource',
+        name: 'Resource',
+        component: () => import('@/views/system/resource/index'),
+        meta: { title: '资源管理', resUrl: '/system/resource' }
       },
       {
         path: 'role',
         name: 'Role',
         component: () => import('@/views/system/role/index'),
-        meta: { title: '角色管理', seq: 1, resUrl: '/system/role' }
+        meta: { title: '角色管理', resUrl: '/system/role' }
       },
       {
-        path: 'resource',
-        name: 'Resource',
-        component: () => import('@/views/system/resource/index'),
-        meta: { title: '资源管理', seq: 2, resUrl: '/system/resource' }
+        path: 'user',
+        name: 'User',
+        component: () => import('@/views/system/user'),
+        meta: { title: '用户管理', resUrl: '/system/user' }
       }
     ]
   },
