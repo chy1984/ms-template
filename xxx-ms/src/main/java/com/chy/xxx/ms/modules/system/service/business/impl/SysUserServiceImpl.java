@@ -163,6 +163,9 @@ public class SysUserServiceImpl implements SysUserService {
     public void delete(Long id) {
         SysUserPo sysUserPo = sysUserDbService.getById(id);
         RtBizAssert.assertNotNull(sysUserPo, MsErrorCodeEnum.SYS_USER_NOT_EXIST, "userId=" + id);
+        String curUsername = RequestContextHolder.getRequestContext().getUsername();
+        RtBizAssert.assertNotEquals(sysUserPo.getUsername(), curUsername, MsErrorCodeEnum.CANNOT_DELETE_SELF, "username=" + curUsername);
+
         sysUserTxService.deleteUser(id);
         sysUserResourceCacheService.removeUserResourceCache(sysUserPo.getUsername());
     }

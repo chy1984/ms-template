@@ -38,8 +38,7 @@ public class Knife4jConfig {
                 .apis(RequestHandlerSelectors.withClassAnnotation(Api.class))
                 .paths(PathSelectors.any())
                 .build();
-        // 请求头必须填token
-        // 通过页面登录后，token会存储到cookie中，请求时自动携带，在浏览器接口文档中调试时可以不加这个配置
+        // 调试时的鉴权配置
         docket.securitySchemes(this.securitySchemes()).securityContexts(this.securityContexts());
         return docket;
     }
@@ -54,7 +53,7 @@ public class Knife4jConfig {
     }
 
     private List<SecurityScheme> securitySchemes() {
-        //设置请求头信息
+        //请求头携带token
         List<SecurityScheme> result = new ArrayList<>();
         String requestHeader = jwtTokenProperties.getRequestHeader();
         ApiKey apiKey = new ApiKey(requestHeader, requestHeader, "header");
@@ -63,26 +62,23 @@ public class Knife4jConfig {
     }
 
     private List<SecurityContext> securityContexts() {
-        //设置需要登录认证的路径
-        List<SecurityContext> result = new ArrayList<>();
-        result.add(this.getContextByPath("/*/.*"));
-        return result;
-    }
-
-    private SecurityContext getContextByPath(String pathRegex) {
-        return SecurityContext.builder()
+        //除了登录接口，其它接口都使用该鉴权配置
+        List<SecurityContext> securityContexts = new ArrayList<>();
+        SecurityContext securityContext = SecurityContext.builder()
                 .securityReferences(this.defaultAuth())
-                .forPaths(PathSelectors.regex(pathRegex))
+                .forPaths(path -> !"/xxx-ms/v1/system/users/login".equals(path))
                 .build();
+        securityContexts.add(securityContext);
+        return securityContexts;
     }
 
     private List<SecurityReference> defaultAuth() {
-        List<SecurityReference> result = new ArrayList<>();
+        List<SecurityReference> securityReferences = new ArrayList<>();
         AuthorizationScope authorizationScope = new AuthorizationScope("global", "accessEverything");
         AuthorizationScope[] authorizationScopes = new AuthorizationScope[1];
         authorizationScopes[0] = authorizationScope;
-        result.add(new SecurityReference(jwtTokenProperties.getRequestHeader(), authorizationScopes));
-        return result;
+        securityReferences.add(new SecurityReference(jwtTokenProperties.getRequestHeader(), authorizationScopes));
+        return securityReferences;
     }
 
 }

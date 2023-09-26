@@ -22,7 +22,7 @@
           <a target="_blank" href="https://github.com/chy1984/ms-template">
             <el-dropdown-item>Github</el-dropdown-item>
           </a>
-          <el-dropdown-item @click.native="updatePasswordFormVisible = true">
+          <el-dropdown-item @click.native="handleUpdatePassword">
             <span>修改密码</span>
           </el-dropdown-item>
           <el-dropdown-item @click.native="logout">
@@ -42,7 +42,7 @@
           <el-input v-model="updatePasswordForm.oldPassword" show-password placeholder="只支持英文、数字、下划线"/>
         </el-form-item>
         <el-form-item label="新密码" prop="newPassword">
-          <el-input v-model="updatePasswordForm.newPassword" show-password/>
+          <el-input v-model="updatePasswordForm.newPassword" show-password placeholder="只支持英文、数字、下划线"/>
         </el-form-item>
         <el-form-item label="确认密码" prop="confirmPassword">
           <el-input v-model="updatePasswordForm.confirmPassword" show-password/>
@@ -115,6 +115,12 @@ export default {
   methods: {
     toggleSideBar() {
       this.$store.dispatch('app/toggleSideBar')
+    },
+    handleUpdatePassword() {
+      this.updatePasswordFormVisible = true
+      this.$nextTick(() => {
+        this.$refs['updatePasswordForm'].clearValidate()
+      })
     },
     async updatePassword() {
       await this.$store.dispatch('user/updatePassword', this.updatePasswordForm)

@@ -46,7 +46,7 @@ public class SysResourceServiceImpl implements SysResourceService {
         //校验资源是否重复
         this.validateResRepeat(sysResourcePo);
         //校验父子资源的resType关联关系
-        validateParentResMapping(sysResourcePo.getResType(), sysResourcePo.getParentId());
+        this.validateParentResMapping(sysResourcePo.getResType(), sysResourcePo.getParentId());
 
         sysResourceDbService.save(sysResourcePo);
         dynamicSecurityMetadataSource.reloadAllInterfaceRes();
@@ -96,13 +96,13 @@ public class SysResourceServiceImpl implements SysResourceService {
      * @param sysResourcePo 资源信息
      */
     private void validateResRepeat(SysResourcePo sysResourcePo) {
-        SysResourceTypeEnum enumByResType = SysResourceTypeEnum.getEnumByResType(sysResourcePo.getResType());
+        SysResourceTypeEnum resourceTypeEnum = SysResourceTypeEnum.getEnumByResType(sysResourcePo.getResType());
         Long id = sysResourcePo.getId();
         String resUrl = sysResourcePo.getResUrl();
         String resReqMethod = sysResourcePo.getResReqMethod();
 
         //菜单、操作/按钮的 resUrl 不能重复
-        if (SysResourceTypeEnum.MENU.equals(enumByResType) || SysResourceTypeEnum.OPERATION.equals(enumByResType)) {
+        if (SysResourceTypeEnum.MENU.equals(resourceTypeEnum) || SysResourceTypeEnum.OPERATION.equals(resourceTypeEnum)) {
             List<SysResourcePo> sysResourcePos = sysResourceDbService.listByQo(SysResourceQo.builder()
                     .resTypes(Arrays.asList(SysResourceTypeEnum.MENU.getResType(), SysResourceTypeEnum.OPERATION.getResType()))
                     .resUrl(resUrl)
@@ -113,7 +113,7 @@ public class SysResourceServiceImpl implements SysResourceService {
         }
 
         //同一父资源下的接口，resReqMethod + resUrl 不能重复
-        if (SysResourceTypeEnum.INTERFACE.equals(enumByResType)) {
+        if (SysResourceTypeEnum.INTERFACE.equals(resourceTypeEnum)) {
             List<SysResourcePo> sysResourcePos = sysResourceDbService.listByQo(SysResourceQo.builder()
                     .resTypes(Collections.singletonList(SysResourceTypeEnum.INTERFACE.getResType()))
                     .parentId(sysResourcePo.getParentId())

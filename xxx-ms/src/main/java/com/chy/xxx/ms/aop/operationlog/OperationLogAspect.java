@@ -1,10 +1,13 @@
 package com.chy.xxx.ms.aop.operationlog;
 
 import com.chy.xxx.ms.exception.RtBizAssert;
+import com.chy.xxx.ms.exception.ServiceException;
+import com.chy.xxx.ms.exception.ServiceRuntimeException;
 import com.chy.xxx.ms.modules.system.dao.SysUserLogDao;
 import com.chy.xxx.ms.modules.system.po.SysUserLogPo;
 import com.chy.xxx.ms.request.RequestContext;
 import com.chy.xxx.ms.request.RequestContextHolder;
+import com.chy.xxx.ms.response.IErrorCode;
 import com.chy.xxx.ms.util.AopUtil;
 import com.chy.xxx.ms.util.JacksonUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -87,18 +90,14 @@ public class OperationLogAspect {
         return returnObj;
     }
 
-    private void sysUserLog(ProceedingJoinPoint joinPoint, Object returnObj, Throwable throwable) throws NoSuchMethodException {
+    private void sysUserLog(ProceedingJoinPoint joinPoint, Object returnValue, Throwable throwable) throws NoSuchMethodException {
         Method sourceMethod = AopUtil.getSourceMethod(joinPoint);
         OperationLog operationLog = AnnotationUtils.getAnnotation(sourceMethod, OperationLog.class);
-        RtBizAssert.assertNotNull(operationLog, "获取@OperationLog注解为空，sourceMethod=" + joinPoint.getSignature());
+        RtBizAssert.assertNotNull(operationLog, "获取@OperationLog为空，sourceMethod=" + joinPoint.getSignature());
 
         Map<String, Object> methodArgsMap = AopUtil.getMethodArgsMap(joinPoint, NOT_LOG_REQUEST_PARAM_PREDICATE);
         String reqParam = this.buildJsonData(methodArgsMap);
-        String respData = StringUtils.EMPTY;
-        if (operationLog.saveRespData()) {
-            //接口发生异常时则记录异常信息
-            respData = throwable == null ? this.buildJsonData(returnObj) : "执行异常：" + throwable;
-        }
+        String respData = operationLog.saveRespData() ? this.buildRespData(returnValue, throwable) : StringUtils.EMPTY;
 
         RequestContext requestContext = RequestContextHolder.getRequestContext();
         SysUserLogPo sysUserLogPo = SysUserLogPo.builder()
@@ -111,6 +110,25 @@ public class OperationLogAspect {
                 .respData(respData)
                 .build();
         sysUserLogDao.insert(sysUserLogPo);
+    }
+
+    private String buildRespData(Object returnValue, Throwable throwable) {
+        if (throwable == null) {
+            return this.buildJsonData(returnValue);
+        }
+
+        //执行异常时记录异常信息
+        StringBuilder errInfoBuilder = new StringBuilder("执行异常");
+        if (throwable instanceof ServiceException) {
+            IErrorCode errorCode = ((ServiceException) throwable).getErrorCode();
+            errInfoBuilder.append("，errorCode：").append(errorCode);
+        }
+        if (throwable instanceof ServiceRuntimeException) {
+            IErrorCode errorCode = ((ServiceRuntimeException) throwable).getErrorCode();
+            errInfoBuilder.append("，errorCode：").append(errorCode);
+        }
+        errInfoBuilder.append("，detailMessage：").append(throwable.getMessage());
+        return errInfoBuilder.toString();
     }
 
     private String buildJsonData(Object obj) {

@@ -3,7 +3,7 @@ import {
   getToken, setToken, getUsername, setUsername, getRealName, setRealName,
   getMenus, setMenus, getOperationResUrls, setOperationResUrls, clear
 } from '@/store/local-storage'
-import { resetRouter } from '@/router'
+import { MessageBox } from 'element-ui'
 
 const getState = () => {
   return {
@@ -117,10 +117,17 @@ const actions = {
     return new Promise((resolve, reject) => {
       logout().then(() => {
         commit('RESET_STATE')
-        resetRouter()
         resolve()
       }).catch(error => {
-        reject(error)
+        // 当前账号被删除、禁用导致退出异常时，可以强制退出
+        MessageBox.confirm(`退出登录时发生异常：${error.message}，是否强制退出？`, '操作提示', {
+          confirmButtonText: '强制退出',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+          commit('RESET_STATE')
+          resolve()
+        })
       })
     })
   },

@@ -54,17 +54,26 @@ public enum SysResourceTypeEnum {
         throw new ServiceRuntimeException(MsErrorCodeEnum.SYS_RESOURCE_TYPE_ERROR, "resType=" + resType);
     }
 
+    /**
+     * 允许的父子资源resType关联关系：key是子资源resType，value是允许的父资源resType列表
+     */
     public static final ImmutableMap<Integer, List<Integer>> ALLOW_PARENT_RES_MAPPING = ImmutableMap.<Integer, List<Integer>>builder()
-            .put(MENU.resType, Arrays.asList(MENU.resType, null, 0))
+            .put(MENU.resType, Arrays.asList(MENU.resType, null))
             .put(OPERATION.resType, Collections.singletonList(MENU.resType))
             .put(INTERFACE.resType, Collections.singletonList(OPERATION.resType))
             .build();
 
+    /**
+     * 校验父子资源resType关联关系是否合法
+     *
+     * @param resType       子资源的资源类型
+     * @param parentResType 父资源的资源类型
+     * @return boolean
+     */
     public static boolean validateParentResMapping(Integer resType, Integer parentResType) {
         RtBizAssert.assertNotNull(resType, "resType不能为空");
-        List<Integer> allowParentResTypeList = ALLOW_PARENT_RES_MAPPING.get(resType);
-        RtBizAssert.assertNotNull(allowParentResTypeList, "不合法的resType：" + resType);
-        return allowParentResTypeList.contains(parentResType);
+        List<Integer> allowParentResTypes = ALLOW_PARENT_RES_MAPPING.getOrDefault(resType, Collections.emptyList());
+        return allowParentResTypes.contains(parentResType);
     }
 
 }

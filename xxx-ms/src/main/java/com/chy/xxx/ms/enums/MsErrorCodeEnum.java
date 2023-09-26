@@ -7,8 +7,9 @@ import lombok.Getter;
 import lombok.ToString;
 
 /**
- * 后台错误码枚举<br/>
- * 以前2位区分业务模块，保留0、9开头的作为项目通用错误码，0成功，9失败
+ * 后台错误码枚举 <br/>
+ * 以前2位区分业务模块，保留0、9开头的作为项目通用错误码，0成功，9失败 <br/>
+ * 重写 toString() 便于日志记录
  *
  * @author chy
  */
@@ -40,6 +41,7 @@ public enum MsErrorCodeEnum implements IErrorCode {
     SYS_RESOURCE_TYPE_ERROR("100011", "资源类型不合法"),
     SYS_MENU_AND_RESOURCE_URL_NOT_REPEAT("100012", "菜单、操作/按钮的资源url不能重复"),
     SYS_INTERFACE_REQ_METHOD_AND_URL_NOT_REPEAT("100013", "同一按钮/操作下的接口，请求方式+资源url不能重复"),
+    CANNOT_DELETE_SELF("100014", "不能删除自己"),
     ;
 
     /**
