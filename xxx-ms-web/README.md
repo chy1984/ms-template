@@ -1,15 +1,7 @@
 # xxx-ms-web
+高版本 node.js 容易出现兼容性问题，建议使用 v16 及其以下版本的 node.js，推荐：[https://nodejs.org/download/release/v16.20.2](https://nodejs.org/download/release/v16.20.2)
 
-> 基于vue、element ui的管理后台模板，已集成权限控制
-
-## Extra
-
-基于 PanJiaChen [vue-admin-template](https://github.com/PanJiaChen/vue-admin-template) 的 permission-control 分支改造而成，
-
-使用高版本node.js容易发生兼容性问题，推荐使用v16及其以下版本的node.js，推荐：[node.js v16.20.2](https://nodejs.org/download/release/v16.20.2/)
-
-## Build Setup
-
+## 构建
 ```bash
 # 克隆项目
 git clone https://github.com/chy1984/ms-template.git
@@ -17,20 +9,19 @@ git clone https://github.com/chy1984/ms-template.git
 # 进入项目目录
 cd xxx-ms-web
 
-# 安装依赖
-npm install
-
-# 建议不要直接使用 cnpm 安装以来，会有各种诡异的 bug。可以通过如下操作解决 npm 下载速度慢的问题
+# 安装依赖，npm install 太慢，直接用 cnpm 容易发生各种诡异的bug，推荐以下方式
 npm install --registry=https://registry.npm.taobao.org
 
 # 启动服务
 npm run dev
 ```
-
 浏览器访问 [http://localhost:9000](http://localhost:9000)
 
-## 发布
+内置的2个账号密码
+- admin 1234
+- visitor 1234
 
+## 发布
 ```bash
 # 构建测试环境
 npm run build:stage
@@ -40,7 +31,6 @@ npm run build:prod
 ```
 
 ## 其它
-
 ```bash
 # 预览发布环境效果
 npm run preview
@@ -54,4 +44,3 @@ npm run lint
 # 代码格式检查并自动修复
 npm run lint -- --fix
 ```
-
