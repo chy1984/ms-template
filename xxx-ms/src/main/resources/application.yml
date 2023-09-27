@@ -17,6 +17,9 @@ mybatis-plus:
     db-config:
       table-prefix: t_
 
+pagehelper:
+  helper-dialect: mysql
+
 knife4j:
   #是否启用增强配置
   enable: true
@@ -59,7 +62,6 @@ jwt.token:
   refresh-before-expire: 1200
   #通知前端刷新token的响应头字段
   refresh-response-header: Refresh-Token
-
 
 system:
   user:
