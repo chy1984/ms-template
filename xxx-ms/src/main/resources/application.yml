@@ -23,8 +23,8 @@ pagehelper:
 knife4j:
   #是否启用增强配置
   enable: true
-  #生产环境是否开启接口文档
-  production: false
+  #生产环境是否屏蔽接口文档
+  production: true
 
 cache:
   #是否启用缓存
@@ -65,5 +65,5 @@ jwt.token:
 
 system:
   user:
-    #默认密码，至少4个字符
+    #添加新用户、重置密码时设置的默认密码，至少4个字符
     default-password: 1234

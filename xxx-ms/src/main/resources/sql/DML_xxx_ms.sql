@@ -1,6 +1,6 @@
 -- 初始化系统配置
 INSERT INTO `t_sys_resource` (`id`, `res_name`, `res_type`, `res_icon`, `res_url`, `res_req_method`, `seq`, `status`, `parent_id`)
-VALUES (1, '系统管理', 1, 'el-icon-setting\r\n', '/system', '', 0, 0, 0),
+VALUES (1, '系统管理', 1, 'el-icon-setting', '/system', '', 0, 0, 0),
        (2, '资源管理', 1, '', '/system/resource', '', 0, 0, 1),
        (3, '查看系统资源列表', 2, '', '/system/resource/list', '', 0, 0, 2),
        (4, '+ 查询系统资源列表', 3, '', '/v1/system/resources/list', 'GET', 0, 0, 3),
