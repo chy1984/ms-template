@@ -1,7 +1,7 @@
 # xxx-ms
 
 ## 使用步骤
-1. 新建数据库 xxx-ms，字符集utf8mb4
+1. 新建数据库 xxx-ms，字符集 utf8mb4，排序方式 utf8mb4_general_ci
 2. 依次执行 resources/sql 下的DDL、DML
 3. 修改yml中的db、redis连接配置
 4. 启动服务
