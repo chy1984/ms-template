@@ -29,6 +29,11 @@ public class Knife4jConfig {
     @Resource
     private JwtTokenProperties jwtTokenProperties;
 
+    /**
+     * 登录接口地址
+     */
+    private static final String LOGIN_URL = "/xxx-ms/v1/system/users/login";
+
     @Bean
     public Docket docket() {
         Docket docket = new Docket(DocumentationType.SWAGGER_2)
@@ -45,7 +50,7 @@ public class Knife4jConfig {
 
     private ApiInfo apiInfo() {
         return new ApiInfoBuilder()
-                .contact(new Contact("chy", "https://www.chy.com/xxx-ms", "chy@qq.com"))
+                .contact(new Contact("chy", "https://www.xxx.com/xxx-ms", "chy@xxx.com"))
                 .title("xxx-ms接口文档")
                 .description("xxx管理后台接口文档")
                 .version("1.0")
@@ -66,7 +71,7 @@ public class Knife4jConfig {
         List<SecurityContext> securityContexts = new ArrayList<>();
         SecurityContext securityContext = SecurityContext.builder()
                 .securityReferences(this.defaultAuth())
-                .forPaths(path -> !"/xxx-ms/v1/system/users/login".equals(path))
+                .forPaths(path -> !LOGIN_URL.equals(path))
                 .build();
         securityContexts.add(securityContext);
         return securityContexts;
